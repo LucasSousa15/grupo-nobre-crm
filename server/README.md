@@ -11,7 +11,7 @@ Cada módulo é organizado em `domain`, `application` e `infra`:
 - `infra`: adaptadores HTTP e persistência Prisma;
 - `core`: composição, configuração, banco e tratamento transversal de erros.
 
-Esta inicialização entrega a fundação do servidor. Os módulos de persistência e de oportunidades são adicionados em commits separados, para manter a evolução do histórico clara.
+O primeiro fluxo entregue é a alteração de estágio de uma oportunidade, com histórico append-only e transação no banco.
 
 ## Executar
 
