@@ -1,0 +1,82 @@
+import 'dotenv/config';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { OpportunityStage, PrismaClient } from '@prisma/client';
+import { Pool } from 'pg';
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
+
+interface SeedOpportunity {
+  code: string;
+  company: string;
+  contact: string;
+  seller: string;
+  product: string;
+  quantity: number;
+  estimatedValue: number;
+  lastContactAt: string;
+  proposalValidUntil?: string;
+  customerEventAt: string;
+  stage: OpportunityStage;
+  lossReason?: string;
+}
+
+const opportunities: SeedOpportunity[] = [
+  { code: 'OPP-2001', company: 'Tech Alpha Ltda', contact: 'Contato Tech Alpha', seller: 'Ana', product: 'Caneca personalizada', quantity: 300, estimatedValue: 4500, lastContactAt: '2026-10-14', customerEventAt: '2026-11-30', stage: OpportunityStage.FIRST_CONTACT },
+  { code: 'OPP-2002', company: 'Construtora Horizonte', contact: 'Contato Construtora Horizonte', seller: 'Bruno', product: 'Kit escritório', quantity: 120, estimatedValue: 9800, lastContactAt: '2026-10-06', proposalValidUntil: '2026-10-13', customerEventAt: '2026-10-25', stage: OpportunityStage.QUOTE_PRESENTATION },
+  { code: 'OPP-2003', company: 'Clínica Vida', contact: 'Contato Clínica Vida', seller: 'Ana', product: 'Squeeze personalizado', quantity: 500, estimatedValue: 7200, lastContactAt: '2026-10-13', proposalValidUntil: '2026-10-20', customerEventAt: '2026-10-18', stage: OpportunityStage.FOLLOW_UP },
+  { code: 'OPP-2004', company: 'Agência Pulso', contact: 'Contato Agência Pulso', seller: 'Carla', product: 'Camiseta estampada', quantity: 80, estimatedValue: 3900, lastContactAt: '2026-10-02', proposalValidUntil: '2026-10-10', customerEventAt: '2026-11-05', stage: OpportunityStage.FOLLOW_UP },
+  { code: 'OPP-2005', company: 'Banco Norte', contact: 'Contato Banco Norte', seller: 'Bruno', product: 'Agenda executiva', quantity: 1000, estimatedValue: 38000, lastContactAt: '2026-10-15', proposalValidUntil: '2026-10-22', customerEventAt: '2026-12-12', stage: OpportunityStage.FORECAST },
+  { code: 'OPP-2006', company: 'Escola Saber', contact: 'Contato Escola Saber', seller: 'Carla', product: 'Mochila infantil', quantity: 250, estimatedValue: 11500, lastContactAt: '2026-10-09', proposalValidUntil: '2026-10-16', customerEventAt: '2026-10-17', stage: OpportunityStage.CLOSED },
+  { code: 'OPP-2007', company: 'Padaria do Bairro', contact: 'Contato Padaria do Bairro', seller: 'Ana', product: 'Caneta promocional', quantity: 50, estimatedValue: 350, lastContactAt: '2026-10-01', proposalValidUntil: '2026-10-08', customerEventAt: '2026-10-20', stage: OpportunityStage.LOST, lossReason: 'Cliente optou por outro fornecedor.' },
+];
+
+async function main(): Promise<void> {
+  for (const data of opportunities) {
+    const seller = await prisma.seller.upsert({
+      where: { email: `${data.seller.toLowerCase()}@nobrebrindes.local` },
+      update: { name: data.seller, active: true },
+      create: { name: data.seller, email: `${data.seller.toLowerCase()}@nobrebrindes.local` },
+    });
+    const company = await prisma.company.upsert({
+      where: { id: `seed-company-${data.code}` },
+      update: { companyName: data.company, contactName: data.contact },
+      create: { id: `seed-company-${data.code}`, companyName: data.company, contactName: data.contact },
+    });
+    const product = await prisma.product.upsert({
+      where: { id: `seed-product-${data.code}` },
+      update: { name: data.product, active: true },
+      create: { id: `seed-product-${data.code}`, name: data.product },
+    });
+
+    await prisma.opportunity.upsert({
+      where: { code: data.code },
+      update: {
+        companyId: company.id,
+        sellerId: seller.id,
+        stage: data.stage,
+        estimatedValue: data.estimatedValue,
+        lastContactAt: new Date(`${data.lastContactAt}T12:00:00.000Z`),
+        proposalValidUntil: data.proposalValidUntil ? new Date(`${data.proposalValidUntil}T12:00:00.000Z`) : null,
+        customerEventAt: new Date(`${data.customerEventAt}T12:00:00.000Z`),
+        lossReason: data.lossReason ?? null,
+      },
+      create: {
+        code: data.code,
+        companyId: company.id,
+        sellerId: seller.id,
+        stage: data.stage,
+        estimatedValue: data.estimatedValue,
+        lastContactAt: new Date(`${data.lastContactAt}T12:00:00.000Z`),
+        proposalValidUntil: data.proposalValidUntil ? new Date(`${data.proposalValidUntil}T12:00:00.000Z`) : null,
+        customerEventAt: new Date(`${data.customerEventAt}T12:00:00.000Z`),
+        lossReason: data.lossReason ?? null,
+        items: { create: { productId: product.id, quantity: data.quantity } },
+      },
+    });
+  }
+}
+
+main()
+  .then(() => console.info('Seed concluído.'))
+  .finally(async () => { await prisma.$disconnect(); await pool.end(); });

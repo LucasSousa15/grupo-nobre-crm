@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OpportunityStage {
+  FIRST_CONTACT
+  QUOTE_PRESENTATION
+  FOLLOW_UP
+  FORECAST
+  CLOSED
+  LOST
+}
+
+model Company {
+  id           String        @id @default(uuid())
+  companyName  String        @map("company_name")
+  contactName  String        @map("contact_name")
+  contactEmail String?       @map("contact_email")
+  contactPhone String?       @map("contact_phone")
+  opportunities Opportunity[]
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@map("companies")
+}
+
+model Seller {
+  id            String        @id @default(uuid())
+  name          String
+  email         String        @unique
+  active        Boolean       @default(true)
+  opportunities Opportunity[]
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  @@map("sellers")
+}
+
+model Product {
+  id          String            @id @default(uuid())
+  name        String
+  description String?
+  active      Boolean           @default(true)
+  items       OpportunityItem[]
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  @@map("products")
+}
+
+model Opportunity {
+  id                 String            @id @default(uuid())
+  code               String            @unique
+  companyId          String            @map("company_id")
+  sellerId           String            @map("seller_id")
+  stage              OpportunityStage @default(FIRST_CONTACT)
+  estimatedValue     Decimal?          @db.Decimal(12, 2) @map("estimated_value")
+  lastContactAt      DateTime?         @map("last_contact_at")
+  nextFollowUpAt     DateTime?         @map("next_follow_up_at")
+  proposalValidUntil DateTime?         @db.Date @map("proposal_valid_until")
+  customerEventAt    DateTime?         @db.Date @map("customer_event_at")
+  lossReason         String?           @map("loss_reason")
+  company            Company           @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  seller             Seller            @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+  items              OpportunityItem[]
+  stageHistory       StageHistory[]
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+
+  @@index([sellerId])
+  @@index([companyId])
+  @@index([stage])
+  @@index([nextFollowUpAt])
+  @@map("opportunities")
+}
+
+model OpportunityItem {
+  id            String      @id @default(uuid())
+  opportunityId String      @map("opportunity_id")
+  productId     String      @map("product_id")
+  quantity      Int
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([opportunityId])
+  @@index([productId])
+  @@map("opportunity_items")
+}
+
+model StageHistory {
+  id            String           @id @default(uuid())
+  opportunityId String           @map("opportunity_id")
+  fromStage     OpportunityStage @map("from_stage")
+  toStage       OpportunityStage @map("to_stage")
+  changedAt     DateTime         @default(now()) @map("changed_at")
+  opportunity   Opportunity      @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@index([opportunityId, changedAt])
+  @@map("stage_history")
+}
