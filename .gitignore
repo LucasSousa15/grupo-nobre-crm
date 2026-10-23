@@ -1,0 +1,25 @@
+# Dependências (em qualquer aplicação do repositório)
+node_modules/
+**/node_modules/
+
+# Variáveis de ambiente e arquivos locais
+.env
+.env.*
+!.env.example
+
+# Artefatos de build e cobertura
+dist/
+coverage/
+.next/
+out/
+
+# Logs e cache
+*.log
+.cache/
+.turbo/
+
+# Sistema operacional e IDEs
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
