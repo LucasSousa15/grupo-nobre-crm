@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { isAxiosError } from "axios";
-import { CheckCircle2, ChevronDown, Clock3, Flame, RefreshCw, RotateCcw, Search, TriangleAlert, UsersRound, type LucideIcon } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ChevronDown, Clock3, Flame, RefreshCw, RotateCcw, Search, TriangleAlert, type LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { useChangeOpportunityStage } from "@/hooks/opportunities/use-change-opportunity-stage";
 import { attentionLabels, attentionStatuses, opportunityStages, stageLabels, type AttentionStatus, type Opportunity, type OpportunityStage } from "@/hooks/opportunities/types";
@@ -115,12 +115,10 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
       <PageHeader
         title={`Carteira de ${seller.name}`}
         description="Pesquise, priorize e mova as oportunidades da sua carteira pelo funil comercial."
+        backAction={<button type="button" onClick={onChangeSeller} className="inline-flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold text-nobre-forest transition-colors hover:bg-nobre-moss hover:text-nobre-forest-deep"><ArrowLeft size={16} aria-hidden />Voltar aos vendedores</button>}
         action={
           <div className="flex flex-wrap items-end gap-3">
             <button type="button" onClick={() => setEditorOpportunity(null)} className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-nobre-forest-deep px-4 py-2.5 text-sm font-semibold text-white hover:bg-nobre-forest">Nova oportunidade</button>
-            <button type="button" onClick={onChangeSeller} className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-nobre-forest/30 bg-nobre-paper px-3 py-2 text-sm font-medium text-nobre-forest-deep hover:border-nobre-forest hover:text-nobre-forest">
-              <UsersRound size={16} aria-hidden /> Trocar vendedor
-            </button>
             <label className="grid gap-1 text-sm font-medium text-nobre-forest-deep">
               Atenção
               <select value={attentionStatus} onChange={(event) => setAttentionStatus(event.target.value as AttentionStatus | "ALL")} className="min-w-40 cursor-pointer rounded-lg border border-nobre-forest/30 bg-nobre-paper px-3 py-2 text-sm outline-none focus:border-nobre-forest focus:ring-2 focus:ring-nobre-sprout/60">
