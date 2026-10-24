@@ -10,6 +10,7 @@ import { OpportunityAutomationRepository, OpportunityForAutomation } from 'src/m
 import { CreateOpportunityProps, FindOpportunitiesFilters, OpportunityDetails, OpportunityPage, OpportunityStageHistory, UpdateOpportunityProps } from 'src/modules/opportunities/domain/types/opportunity';
 import { OpportunityStage } from 'src/modules/opportunities/domain/types/opportunity-stage';
 import { OpportunityAttentionService, OpportunityAttentionStatus } from 'src/modules/opportunities/domain/services/opportunity-attention.service';
+import { FOLLOW_UP_DUE_WINDOW_DAYS } from 'src/modules/opportunities/domain/services/follow-up-reminder-policy.service';
 import { ReminderType } from 'src/modules/reminders/domain/types/reminder';
 
 const opportunityDetailsInclude = {
@@ -76,50 +77,71 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
   }
 
   async findMany(filters: FindOpportunitiesFilters): Promise<OpportunityPage> {
-    const where: Prisma.OpportunityWhereInput = {
-      ...(filters.stage ? { stage: filters.stage as PrismaOpportunityStage } : {}),
-      ...(filters.sellerId ? { sellerId: filters.sellerId } : {}),
-      ...(filters.companyId ? { companyId: filters.companyId } : {}),
-      ...(filters.search?.trim() ? {
-        OR: [
-          { code: { contains: filters.search.trim(), mode: 'insensitive' } },
-          { company: { companyName: { contains: filters.search.trim(), mode: 'insensitive' } } },
-        ],
-      } : {}),
-    };
-    const results = await this.prisma.opportunity.findMany({
-      where,
-      include: opportunityDetailsInclude,
-      orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
-    });
-    const matchingOpportunities = results.map((opportunity) => this.toDetails(opportunity));
-    const attentionSummary = matchingOpportunities.reduce<Record<OpportunityAttentionStatus, number>>(
-      (summary, opportunity) => ({
-        ...summary,
-        [opportunity.attentionStatus]: summary[opportunity.attentionStatus] + 1,
-      }),
-      {
-        [OpportunityAttentionStatus.NORMAL]: 0,
-        [OpportunityAttentionStatus.DUE_SOON]: 0,
-        [OpportunityAttentionStatus.OVERDUE]: 0,
-        [OpportunityAttentionStatus.CRITICAL]: 0,
-      },
-    );
-    const filteredOpportunities = filters.attentionStatus
-      ? matchingOpportunities.filter((opportunity) => opportunity.attentionStatus === filters.attentionStatus)
-      : matchingOpportunities;
     const pageSize = filters.limit ?? 24;
-    const cursorIndex = filters.cursor
-      ? filteredOpportunities.findIndex((opportunity) => opportunity.id === filters.cursor)
-      : -1;
-    const pageStart = cursorIndex + 1;
-    const opportunities = filteredOpportunities.slice(pageStart, pageStart + pageSize);
+    const rows = await this.findOpportunityPageRows(filters, pageSize);
+    const pageRows = rows.slice(0, pageSize);
+    const ids = pageRows.map((row) => row.id);
+    const resultById = new Map((await this.prisma.opportunity.findMany({
+      where: { id: { in: ids } }, include: opportunityDetailsInclude,
+    })).map((opportunity) => [opportunity.id, opportunity]));
+    const opportunities = ids.map((id) => this.toDetails(resultById.get(id)!));
+    const firstRow = rows[0];
     return {
       opportunities,
-      nextCursor: pageStart + pageSize < filteredOpportunities.length ? opportunities.at(-1)?.id ?? null : null,
-      total: filteredOpportunities.length,
-      attentionSummary,
+      nextCursor: rows.length > pageSize ? opportunities.at(-1)?.id ?? null : null,
+      total: firstRow ? Number(firstRow.total) : 0,
+      attentionSummary: {
+        [OpportunityAttentionStatus.NORMAL]: firstRow ? Number(firstRow.normal) : 0,
+        [OpportunityAttentionStatus.DUE_SOON]: firstRow ? Number(firstRow.due_soon) : 0,
+        [OpportunityAttentionStatus.OVERDUE]: firstRow ? Number(firstRow.overdue) : 0,
+        [OpportunityAttentionStatus.CRITICAL]: firstRow ? Number(firstRow.critical) : 0,
+      },
     };
+  }
+
+  private async findOpportunityPageRows(filters: FindOpportunitiesFilters, pageSize: number) {
+    const conditions: Prisma.Sql[] = [Prisma.sql`TRUE`];
+    if (filters.stage) conditions.push(Prisma.sql`o.stage = ${filters.stage}::"OpportunityStage"`);
+    if (filters.sellerId) conditions.push(Prisma.sql`o.seller_id = ${filters.sellerId}::uuid`);
+    if (filters.companyId) conditions.push(Prisma.sql`o.company_id = ${filters.companyId}::uuid`);
+    if (filters.search?.trim()) {
+      const term = `%${filters.search.trim()}%`;
+      conditions.push(Prisma.sql`(o.code ILIKE ${term} OR EXISTS (SELECT 1 FROM companies c WHERE c.id = o.company_id AND c.company_name ILIKE ${term}))`);
+    }
+    const baseWhere = Prisma.join(conditions, ' AND ');
+    const attentionFilter = filters.attentionStatus ? Prisma.sql`AND f.attention_status = ${filters.attentionStatus}` : Prisma.empty;
+    const cursorFilter = filters.cursor ? Prisma.sql`AND (f.updated_at, f.id) < (SELECT updated_at, id FROM scored WHERE id = ${filters.cursor}::uuid)` : Prisma.empty;
+    return this.prisma.$queryRaw<Array<{
+      id: string; total: number | bigint; normal: number | bigint; due_soon: number | bigint; overdue: number | bigint; critical: number | bigint;
+    }>>(Prisma.sql`
+      WITH scored AS (
+        SELECT o.id, o.updated_at,
+          CASE
+            WHEN o.stage IN ('CLOSED'::"OpportunityStage", 'LOST'::"OpportunityStage") THEN 'NORMAL'
+            WHEN COUNT(r.id) FILTER (WHERE r.type = 'FOLLOW_UP_OVERDUE'::"ReminderType" AND (o.last_contact_at IS NULL OR r.created_at > o.last_contact_at)) >= 2 THEN 'CRITICAL'
+            WHEN COUNT(r.id) FILTER (WHERE r.type = 'FOLLOW_UP_OVERDUE'::"ReminderType" AND (o.last_contact_at IS NULL OR r.created_at > o.last_contact_at)) = 1 THEN 'OVERDUE'
+            WHEN o.next_follow_up_at > NOW() AND o.next_follow_up_at <= NOW() + ${FOLLOW_UP_DUE_WINDOW_DAYS} * INTERVAL '1 day' THEN 'DUE_SOON'
+            ELSE 'NORMAL'
+          END AS attention_status
+        FROM opportunities o
+        LEFT JOIN reminders r ON r.opportunity_id = o.id
+        WHERE ${baseWhere}
+        GROUP BY o.id
+      ), stats AS (
+        SELECT
+          COUNT(*) FILTER (WHERE ${filters.attentionStatus ? Prisma.sql`attention_status = ${filters.attentionStatus}` : Prisma.sql`TRUE`}) AS total,
+          COUNT(*) FILTER (WHERE attention_status = 'NORMAL') AS normal,
+          COUNT(*) FILTER (WHERE attention_status = 'DUE_SOON') AS due_soon,
+          COUNT(*) FILTER (WHERE attention_status = 'OVERDUE') AS overdue,
+          COUNT(*) FILTER (WHERE attention_status = 'CRITICAL') AS critical
+        FROM scored
+      )
+      SELECT f.id, stats.total, stats.normal, stats.due_soon, stats.overdue, stats.critical
+      FROM scored f CROSS JOIN stats
+      WHERE TRUE ${attentionFilter} ${cursorFilter}
+      ORDER BY f.updated_at DESC, f.id DESC
+      LIMIT ${pageSize + 1}
+    `);
   }
 
   async findStageHistoryByOpportunityId(opportunityId: string): Promise<OpportunityStageHistory[]> {
