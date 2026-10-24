@@ -45,6 +45,7 @@ model Seller {
   id            String        @id @default(uuid())
   name          String
   email         String        @unique
+  phone         String?
   active        Boolean       @default(true)
   opportunities Opportunity[]
   createdAt     DateTime      @default(now()) @map("created_at")

@@ -6,6 +6,7 @@ export class SellerViewModel {
       id: seller.id,
       name: seller.name,
       email: seller.email,
+      phone: seller.phone,
       active: seller.active,
       createdAt: seller.createdAt,
       updatedAt: seller.updatedAt,

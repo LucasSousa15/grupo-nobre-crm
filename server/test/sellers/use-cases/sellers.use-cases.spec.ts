@@ -13,6 +13,7 @@ const seller = (overrides: Partial<SellerProps> = {}): SellerProps => ({
   id: 'seller-id',
   name: 'Ana Martins',
   email: 'ana@nobrebrindes.com.br',
+  phone: '+55 11 99999-9999',
   active: true,
   createdAt: new Date('2026-10-15T12:00:00.000Z'),
   updatedAt: new Date('2026-10-15T12:00:00.000Z'),
@@ -24,7 +25,7 @@ describe('Seller use cases', () => {
     const repository = new InMemorySellerRepository();
     const created = await new CreateSellerUseCase(repository).execute({ name: ' Ana Martins ', email: ' ANA@NOBREBRINDES.COM.BR ' });
 
-    expect(created).toMatchObject({ name: 'Ana Martins', email: 'ana@nobrebrindes.com.br', active: true });
+    expect(created).toMatchObject({ name: 'Ana Martins', email: 'ana@nobrebrindes.com.br', phone: null, active: true });
     expect(repository.sellers).toHaveLength(1);
   });
 
@@ -41,8 +42,8 @@ describe('Seller use cases', () => {
 
   it('updates seller data and permits deactivation without removing history', async () => {
     const repository = new InMemorySellerRepository([seller()]);
-    const updated = await new UpdateSellerUseCase(repository).execute('seller-id', { name: 'Ana Costa', active: false });
-    expect(updated).toMatchObject({ name: 'Ana Costa', active: false });
+    const updated = await new UpdateSellerUseCase(repository).execute('seller-id', { name: 'Ana Costa', phone: null, active: false });
+    expect(updated).toMatchObject({ name: 'Ana Costa', phone: null, active: false });
   });
 
   it('does not update a seller to an e-mail that belongs to another seller', async () => {

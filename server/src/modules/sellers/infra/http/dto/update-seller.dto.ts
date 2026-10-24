@@ -14,6 +14,12 @@ export class UpdateSellerDto {
   @MaxLength(254)
   email?: string;
 
+  @ApiPropertyOptional({ example: '+55 11 99999-9999', nullable: true })
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  phone?: string | null;
+
   @ApiPropertyOptional({ example: false, description: 'Desativa o vendedor sem excluir seu histórico.' })
   @IsOptional()
   @IsBoolean()

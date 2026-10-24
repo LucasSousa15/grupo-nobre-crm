@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateSellerDto {
   @ApiProperty({ example: 'Ana Martins' })
@@ -12,4 +12,10 @@ export class CreateSellerDto {
   @IsEmail()
   @MaxLength(254)
   email!: string;
+
+  @ApiPropertyOptional({ example: '+55 11 99999-9999' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  phone?: string;
 }

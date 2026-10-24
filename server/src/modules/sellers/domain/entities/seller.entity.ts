@@ -9,6 +9,7 @@ export class Seller {
       id: crypto.randomUUID(),
       name: input.name.trim(),
       email: input.email.trim().toLowerCase(),
+      phone: input.phone?.trim() || null,
       active: true,
       createdAt: now,
       updatedAt: now,
@@ -26,6 +27,7 @@ export class Seller {
   update(input: UpdateSellerProps): void {
     if (input.name !== undefined) this.props.name = input.name.trim();
     if (input.email !== undefined) this.props.email = input.email.trim().toLowerCase();
+    if (input.phone !== undefined) this.props.phone = input.phone?.trim() || null;
     if (input.active !== undefined) this.props.active = input.active;
     this.props.updatedAt = new Date();
   }
