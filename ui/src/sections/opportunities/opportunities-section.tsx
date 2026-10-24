@@ -9,6 +9,7 @@ import { useOpportunities } from "@/hooks/opportunities/use-opportunities";
 import type { Seller } from "@/hooks/sellers/types";
 import { OpportunityCard } from "./opportunity-card";
 import { OpportunityDetailsDrawer } from "./opportunity-details-drawer";
+import { OpportunityEditorDialog } from "./opportunity-editor-dialog";
 
 const attentionCards: Record<AttentionStatus, { description: string; className: string; icon: LucideIcon }> = {
   NORMAL: { description: "Carteira sob controle", className: "border-nobre-forest-deep/15 bg-nobre-paper text-nobre-forest-deep hover:border-nobre-forest", icon: CheckCircle2 },
@@ -49,24 +50,19 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [requestedStage, setRequestedStage] = useState<OpportunityStage | undefined>();
   const [moveError, setMoveError] = useState<string | null>(null);
+  const [editorOpportunity, setEditorOpportunity] = useState<Opportunity | null | undefined>(undefined);
   const changeStage = useChangeOpportunityStage();
-  const opportunitiesQuery = useOpportunities({ sellerId: seller.id });
+  const opportunitiesQuery = useOpportunities({
+    sellerId: seller.id,
+    ...(attentionStatus === "ALL" ? {} : { attentionStatus }),
+    ...(search.trim() ? { search: search.trim() } : {}),
+  });
   const loadedOpportunities = useMemo(
     () => opportunitiesQuery.data?.pages.flatMap((page) => page.opportunities) ?? [],
     [opportunitiesQuery.data],
   );
-  const opportunities = useMemo(() => {
-    const term = search.trim().toLocaleLowerCase("pt-BR");
-    return loadedOpportunities.filter((opportunity) => {
-      const matchesAttention = attentionStatus === "ALL" || opportunity.attentionStatus === attentionStatus;
-      const matchesSearch = !term || opportunity.code.toLocaleLowerCase("pt-BR").includes(term) || opportunity.company.name.toLocaleLowerCase("pt-BR").includes(term);
-      return matchesAttention && matchesSearch;
-    });
-  }, [loadedOpportunities, attentionStatus, search]);
-  const attentionCount = useMemo(() => loadedOpportunities.reduce<Record<AttentionStatus, number>>(
-    (count, opportunity) => ({ ...count, [opportunity.attentionStatus]: count[opportunity.attentionStatus] + 1 }),
-    { NORMAL: 0, DUE_SOON: 0, OVERDUE: 0, CRITICAL: 0 },
-  ), [loadedOpportunities]);
+  const opportunities = loadedOpportunities;
+  const attentionCount = opportunitiesQuery.data?.pages[0]?.attentionSummary ?? { NORMAL: 0, DUE_SOON: 0, OVERDUE: 0, CRITICAL: 0 };
   const opportunitiesByStage = opportunityStages.reduce<Record<OpportunityStage, Opportunity[]>>(
     (groups, stage) => ({ ...groups, [stage]: opportunities.filter((opportunity) => opportunity.stage === stage) }),
     {} as Record<OpportunityStage, Opportunity[]>,
@@ -96,6 +92,11 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
     const opportunity = draggedOpportunity;
     setDraggedOpportunity(null);
     if (!opportunity || opportunity.stage === stage) return;
+    const transition = opportunity.transitionOptions.find((option) => option.stage === stage);
+    if (!transition || !transition.enabled) {
+      setMoveError(transition?.requirements.join(" ") || "Essa mudanÃ§a de etapa nÃ£o Ã© permitida no funil.");
+      return;
+    }
     if (stage === "LOST") {
       openDetails(opportunity, stage);
       return;
@@ -110,6 +111,7 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
         description="Pesquise, priorize e mova as oportunidades da sua carteira pelo funil comercial."
         action={
           <div className="flex flex-wrap items-end gap-3">
+            <button type="button" onClick={() => setEditorOpportunity(null)} className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-nobre-forest-deep px-4 py-2.5 text-sm font-semibold text-white hover:bg-nobre-forest">Nova oportunidade</button>
             <button type="button" onClick={onChangeSeller} className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-nobre-forest/30 bg-nobre-paper px-3 py-2 text-sm font-medium text-nobre-forest-deep hover:border-nobre-forest hover:text-nobre-forest">
               <UsersRound size={16} aria-hidden /> Trocar vendedor
             </button>
@@ -155,7 +157,7 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
           </span>
         </label>
         <p className="rounded-lg border border-nobre-forest/15 bg-nobre-paper-shade px-4 py-2.5 text-sm text-nobre-ink-soft" aria-live="polite">
-          <span className="font-semibold text-nobre-forest-deep">{opportunities.length}</span> exibidas de {loadedOpportunities.length} carregadas
+          <span className="font-semibold text-nobre-forest-deep">{opportunities.length}</span> exibidas de {opportunitiesQuery.data?.pages[0]?.total ?? 0} encontradas
         </p>
       </div>
 
@@ -178,7 +180,8 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
         </div>
       )}
 
-      {selectedOpportunity && <OpportunityDetailsDrawer key={`${selectedOpportunity.id}:${requestedStage ?? selectedOpportunity.stage}`} opportunity={selectedOpportunity} requestedStage={requestedStage} onClose={() => { setSelectedOpportunity(null); setRequestedStage(undefined); }} onMove={(stage, lossReason) => moveOpportunity(selectedOpportunity, stage, lossReason)} isMoving={changeStage.isPending} />}
+      {selectedOpportunity && <OpportunityDetailsDrawer key={`${selectedOpportunity.id}:${requestedStage ?? selectedOpportunity.stage}`} opportunity={selectedOpportunity} requestedStage={requestedStage} onClose={() => { setSelectedOpportunity(null); setRequestedStage(undefined); }} onMove={(stage, lossReason) => moveOpportunity(selectedOpportunity, stage, lossReason)} onEdit={() => setEditorOpportunity(selectedOpportunity)} isMoving={changeStage.isPending} />}
+      {editorOpportunity !== undefined && <OpportunityEditorDialog seller={seller} opportunity={editorOpportunity ?? undefined} onClose={() => setEditorOpportunity(undefined)} />}
     </section>
   );
 }

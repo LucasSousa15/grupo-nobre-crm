@@ -14,6 +14,12 @@ const opportunitySchema = z.object({
   proposalValidUntil: z.string().nullable(),
   customerEventAt: z.string(),
   lossReason: z.string().nullable(),
+  transitionOptions: z.array(z.object({
+    stage: z.enum(opportunityStages),
+    enabled: z.boolean(),
+    requirements: z.array(z.string()),
+    requiresLossReason: z.boolean(),
+  })).optional().default([]),
   company: z.object({
     id: z.string().min(1),
     name: z.string(),
@@ -30,6 +36,13 @@ const opportunitySchema = z.object({
 export const opportunitiesResponseSchema = z.object({
   opportunities: z.array(opportunitySchema),
   nextCursor: z.string().min(1).nullable().optional().default(null),
+  total: z.number().int().nonnegative().optional().default(0),
+  attentionSummary: z.object({
+    NORMAL: z.number().int().nonnegative(),
+    DUE_SOON: z.number().int().nonnegative(),
+    OVERDUE: z.number().int().nonnegative(),
+    CRITICAL: z.number().int().nonnegative(),
+  }).optional().default({ NORMAL: 0, DUE_SOON: 0, OVERDUE: 0, CRITICAL: 0 }),
 });
 
 export const opportunityHistoryResponseSchema = z.object({

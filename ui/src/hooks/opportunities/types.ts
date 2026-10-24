@@ -23,6 +23,12 @@ export interface Opportunity {
   proposalValidUntil: string | null;
   customerEventAt: string;
   lossReason: string | null;
+  transitionOptions: Array<{
+    stage: OpportunityStage;
+    enabled: boolean;
+    requirements: string[];
+    requiresLossReason: boolean;
+  }>;
   company: {
     id: string;
     name: string;
@@ -45,6 +51,8 @@ export interface OpportunityFilters {
 export interface OpportunityPage {
   opportunities: Opportunity[];
   nextCursor: string | null;
+  total: number;
+  attentionSummary: Record<AttentionStatus, number>;
 }
 
 export interface OpportunityStageHistoryEntry {
