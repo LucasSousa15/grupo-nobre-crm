@@ -53,6 +53,8 @@ No MVP, os lembretes são criados para: follow-up vencido, ausência de próximo
 
 Toda oportunidade possui uma data de evento obrigatória, que representa o prazo comercial final. Ao avançar para apresentação de orçamento ou etapas posteriores, a proposta deve permanecer válida pelo menos até a véspera do evento.
 
+O seed reproduz exatamente os dados fictícios do case, inclusive propostas históricas já vencidas ou anteriores ao evento. Esses registros representam riscos comerciais que devem aparecer no CRM; a regra de validade continua obrigatória para novos cadastros e alterações, que precisam regularizar a proposta antes de prosseguir.
+
 Para cada lembrete criado, `SellerNotificationService`, em `src/services/seller-notifications`, simula um e-mail para o endereço do vendedor e um SMS para seu telefone. Não há integração externa: os envios são registrados no log da aplicação. O SMS é ignorado com um aviso quando o telefone não foi cadastrado.
 
 Para um follow-up vencido, o monitor cria no máximo um lembrete por oportunidade a cada dia. Isso permite a escalada de atenção sem duplicar a mesma execução do cron. Quando o vendedor atualiza `lastContactAt`, um `nextFollowUpAt` anterior a esse contato é tratado como obsoleto.
