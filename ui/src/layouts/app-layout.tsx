@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { LayoutDashboard } from "lucide-react";
 import { paths } from "@/routes/paths";
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -14,7 +15,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <header className="border-b border-nobre-forest-deep/15 bg-nobre-sprout">
         <div className="mx-auto flex max-w-[1800px] items-center justify-between gap-4 px-4 py-4 lg:px-6">
           <Link href={paths.opportunities} className="flex cursor-pointer items-center gap-3 font-semibold tracking-tight text-nobre-forest-deep">
-            <span aria-hidden className="grid size-8 place-items-center rounded-lg bg-nobre-forest-deep text-sm text-nobre-crown">N</span>
+            <span aria-hidden className="grid size-8 place-items-center rounded-lg bg-nobre-forest-deep text-nobre-crown"><LayoutDashboard size={17} strokeWidth={2.4} /></span>
             <span>Nobre CRM</span>
           </Link>
           <nav aria-label="Navegação principal" className="flex items-center gap-1">

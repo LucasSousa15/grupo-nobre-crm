@@ -1,4 +1,5 @@
 import { AttentionBadge } from "@/components/attention-badge";
+import { CalendarDays, Clock3, CircleDollarSign } from "lucide-react";
 import type { AttentionStatus, Opportunity } from "@/hooks/opportunities/types";
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -24,11 +25,11 @@ export function OpportunityCard({ opportunity, onOpen, onDragStart }: { opportun
       </div>
       <h3 className="mt-3 font-semibold text-nobre-forest-deep">{opportunity.company.name}</h3>
       <p className="mt-1 text-sm text-nobre-ink-soft">{opportunity.seller.name}</p>
-      <p className="mt-4 text-lg font-semibold text-nobre-forest-deep">{opportunity.estimatedValue === null ? "Valor não informado" : currency.format(opportunity.estimatedValue)}</p>
+      <p className="mt-4 flex items-center gap-1.5 text-lg font-semibold text-nobre-forest-deep"><CircleDollarSign size={17} aria-hidden />{opportunity.estimatedValue === null ? "Valor não informado" : currency.format(opportunity.estimatedValue)}</p>
       <dl className="mt-4 space-y-2 border-t border-nobre-forest-deep/10 pt-3 text-xs text-nobre-ink-soft">
-        <div className="flex justify-between gap-3"><dt>Último contato</dt><dd className="font-medium text-nobre-forest-deep">{formatDate(opportunity.lastContactAt)}</dd></div>
-        <div className="flex justify-between gap-3"><dt>Próximo follow-up</dt><dd className="font-medium text-nobre-forest-deep">{formatDate(opportunity.nextFollowUpAt)}</dd></div>
-        <div className="flex justify-between gap-3"><dt>Evento</dt><dd className="font-medium text-nobre-forest-deep">{formatDate(opportunity.customerEventAt)}</dd></div>
+        <div className="flex justify-between gap-3"><dt className="inline-flex items-center gap-1"><Clock3 size={13} aria-hidden />Último contato</dt><dd className="font-medium text-nobre-forest-deep">{formatDate(opportunity.lastContactAt)}</dd></div>
+        <div className="flex justify-between gap-3"><dt className="inline-flex items-center gap-1"><Clock3 size={13} aria-hidden />Próximo follow-up</dt><dd className="font-medium text-nobre-forest-deep">{formatDate(opportunity.nextFollowUpAt)}</dd></div>
+        <div className="flex justify-between gap-3"><dt className="inline-flex items-center gap-1"><CalendarDays size={13} aria-hidden />Evento</dt><dd className="font-medium text-nobre-forest-deep">{formatDate(opportunity.customerEventAt)}</dd></div>
       </dl>
       {opportunity.stage === "LOST" && opportunity.lossReason && (
         <p className="mt-4 rounded-lg border border-nobre-crown/60 bg-nobre-crown/20 p-3 text-xs font-medium text-nobre-pitch">

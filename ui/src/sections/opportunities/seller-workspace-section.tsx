@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowRight, RefreshCw, UserRound } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import type { Seller } from "@/hooks/sellers/types";
 import { useSellers } from "@/hooks/sellers/use-sellers";
@@ -21,13 +22,13 @@ function SellerSelection({ sellers, onSelect }: { sellers: Seller[]; onSelect: (
             onClick={() => onSelect(seller)}
             className="group cursor-pointer rounded-2xl border border-nobre-forest-deep/15 bg-nobre-paper p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-nobre-forest hover:bg-nobre-moss hover:shadow-md focus:outline-none focus:ring-2 focus:ring-nobre-sprout"
           >
-            <span className="grid size-11 place-items-center rounded-xl bg-nobre-forest-deep text-base font-semibold text-nobre-crown">
-              {seller.name.slice(0, 1).toUpperCase()}
+            <span className="grid size-11 place-items-center rounded-xl bg-nobre-forest-deep text-nobre-crown">
+              <UserRound size={20} aria-hidden />
             </span>
             <span className="mt-5 block font-semibold text-nobre-forest-deep">{seller.name}</span>
             <span className="mt-1 block text-sm text-nobre-ink-soft">{seller.email}</span>
-            <span className="mt-5 inline-flex text-sm font-semibold text-nobre-forest transition group-hover:translate-x-0.5">
-              Abrir carteira →
+            <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-nobre-forest transition group-hover:translate-x-0.5">
+              Abrir carteira <ArrowRight size={16} aria-hidden />
             </span>
           </button>
         ))}
@@ -57,8 +58,8 @@ export function SellerWorkspaceSection() {
     return (
       <div className="rounded-xl border border-nobre-crown/70 bg-nobre-crown/25 p-5 text-sm text-nobre-pitch" role="alert">
         <p className="font-semibold">Não foi possível carregar os vendedores.</p>
-        <button type="button" onClick={() => void sellersQuery.refetch()} className="mt-3 cursor-pointer rounded-md bg-nobre-forest-deep px-3 py-2 text-sm font-medium text-white hover:bg-nobre-forest">
-          Tentar novamente
+        <button type="button" onClick={() => void sellersQuery.refetch()} className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-md bg-nobre-forest-deep px-3 py-2 text-sm font-medium text-white hover:bg-nobre-forest">
+          <RefreshCw size={15} aria-hidden /> Tentar novamente
         </button>
       </div>
     );
