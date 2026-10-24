@@ -4,9 +4,18 @@ import { DatabaseModule } from './core/providers/database/database.module';
 import { CompaniesModule } from './modules/companies/companies.module';
 import { OpportunitiesModule } from './modules/opportunities/opportunities.module';
 import { ProductsModule } from './modules/products/products.module';
+import { RemindersModule } from './modules/reminders/reminders.module';
 import { SellersModule } from './modules/sellers/sellers.module';
 
 @Module({
-  imports: [DatabaseModule, ScheduleModule.forRoot(), CompaniesModule, OpportunitiesModule, ProductsModule, SellersModule],
+  imports: [
+    DatabaseModule,
+    ScheduleModule.forRoot(),
+    CompaniesModule,
+    OpportunitiesModule,
+    ProductsModule,
+    SellersModule,
+    RemindersModule,
+  ],
 })
 export class AppModule {}

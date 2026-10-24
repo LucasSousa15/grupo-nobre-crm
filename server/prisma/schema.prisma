@@ -15,6 +15,19 @@ enum OpportunityStage {
   LOST
 }
 
+enum ReminderType {
+  FOLLOW_UP_DUE
+  FOLLOW_UP_OVERDUE
+  PROPOSAL_EXPIRING
+  PROPOSAL_EXPIRED
+  CUSTOMER_EVENT_APPROACHING
+}
+
+enum ReminderStatus {
+  OPEN
+  DISMISSED
+}
+
 model Company {
   id           String        @id @default(uuid())
   companyName  String        @map("company_name")
@@ -68,6 +81,7 @@ model Opportunity {
   seller             Seller            @relation(fields: [sellerId], references: [id], onDelete: Restrict)
   items              OpportunityItem[]
   stageHistory       StageHistory[]
+  reminders          Reminder[]
   createdAt          DateTime          @default(now()) @map("created_at")
   updatedAt          DateTime          @updatedAt @map("updated_at")
 
@@ -101,4 +115,18 @@ model StageHistory {
 
   @@index([opportunityId, changedAt])
   @@map("stage_history")
+}
+
+model Reminder {
+  id            String         @id @default(uuid())
+  opportunityId String         @map("opportunity_id")
+  type          ReminderType
+  status        ReminderStatus @default(OPEN)
+  dueAt         DateTime       @map("due_at")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  opportunity   Opportunity    @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@unique([opportunityId, type, dueAt])
+  @@index([status, dueAt])
+  @@map("reminders")
 }
