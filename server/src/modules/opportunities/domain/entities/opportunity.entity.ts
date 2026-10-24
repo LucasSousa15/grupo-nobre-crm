@@ -16,6 +16,13 @@ export interface OpportunitySnapshot {
   customerEventAt: Date | null;
 }
 
+export interface OpportunityTransitionOption {
+  stage: OpportunityStage;
+  enabled: boolean;
+  requirements: string[];
+  requiresLossReason: boolean;
+}
+
 const allowedTransitions: Readonly<Record<OpportunityStage, readonly OpportunityStage[]>> = {
   [OpportunityStage.FIRST_CONTACT]: [OpportunityStage.QUOTE_PRESENTATION, OpportunityStage.LOST],
   [OpportunityStage.QUOTE_PRESENTATION]: [OpportunityStage.FOLLOW_UP, OpportunityStage.LOST],
@@ -55,6 +62,20 @@ export class Opportunity {
 
   assertCanBeDeleted(): void {
     if (this.props.stage !== OpportunityStage.FIRST_CONTACT) throw new OpportunityCannotBeDeletedError();
+  }
+
+  transitionOptions(): OpportunityTransitionOption[] {
+    return allowedTransitions[this.props.stage].map((stage) => {
+      const requirements = stage === OpportunityStage.QUOTE_PRESENTATION
+        ? this.quoteRequirements()
+        : [];
+      return {
+        stage,
+        enabled: requirements.length === 0,
+        requirements,
+        requiresLossReason: stage === OpportunityStage.LOST,
+      };
+    });
   }
 
   assertCurrentStageInvariants(estimatedValue: number | null, itemsCount: number, proposalValidUntil: Date | null, customerEventAt: Date | null): void {
@@ -99,6 +120,25 @@ export class Opportunity {
       throw new StagePrerequisiteError(stage, 'Informe a validade da proposta.');
     }
     Opportunity.assertProposalDeadline(proposalValidUntil, customerEventAt);
+  }
+
+  private quoteRequirements(): string[] {
+    const requirements: string[] = [];
+    if (this.props.estimatedValue === null || this.props.estimatedValue <= 0) {
+      requirements.push('Informe um valor estimado maior que zero.');
+    }
+    if (this.props.itemsCount === 0) {
+      requirements.push('Inclua ao menos um item de brinde.');
+    }
+    if (!this.props.proposalValidUntil) {
+      requirements.push('Informe a validade da proposta.');
+    } else if (this.props.customerEventAt) {
+      const eventDeadline = Opportunity.addDays(Opportunity.startOfUtcDay(this.props.customerEventAt), -1);
+      if (Opportunity.startOfUtcDay(this.props.proposalValidUntil) < eventDeadline) {
+        requirements.push('A proposta deve ser vÃ¡lida atÃ© pelo menos a vÃ©spera do evento.');
+      }
+    }
+    return requirements;
   }
 
   private static startOfUtcDay(date: Date): Date {

@@ -1,4 +1,5 @@
 import { OpportunityDetails } from 'src/modules/opportunities/domain/types/opportunity';
+import { Opportunity } from 'src/modules/opportunities/domain/entities/opportunity.entity';
 
 export class OpportunityViewModel {
   static toHTTP(opportunity: OpportunityDetails) {
@@ -13,6 +14,15 @@ export class OpportunityViewModel {
       proposalValidUntil: opportunity.proposalValidUntil,
       customerEventAt: opportunity.customerEventAt,
       lossReason: opportunity.lossReason,
+      transitionOptions: Opportunity.restore({
+        id: opportunity.id,
+        code: opportunity.code,
+        stage: opportunity.stage,
+        estimatedValue: opportunity.estimatedValue,
+        itemsCount: opportunity.items.length,
+        proposalValidUntil: opportunity.proposalValidUntil,
+        customerEventAt: opportunity.customerEventAt,
+      }).transitionOptions(),
       company: {
         id: opportunity.companyId,
         name: opportunity.companyName,

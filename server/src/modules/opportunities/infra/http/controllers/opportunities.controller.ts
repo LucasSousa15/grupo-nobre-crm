@@ -28,7 +28,12 @@ export class OpportunitiesController {
   @ApiOkResponse({ description: 'Oportunidades encontradas.' })
   async findAll(@Query() filters: FindOpportunitiesDto) {
     const page = await this.findOpportunities.all(filters);
-    return { opportunities: page.opportunities.map(OpportunityViewModel.toHTTP), nextCursor: page.nextCursor };
+    return {
+      opportunities: page.opportunities.map(OpportunityViewModel.toHTTP),
+      nextCursor: page.nextCursor,
+      total: page.total,
+      attentionSummary: page.attentionSummary,
+    };
   }
 
   @Get(':id/history')

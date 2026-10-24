@@ -29,7 +29,21 @@ export class InMemoryOpportunityManagementRepository implements OpportunityManag
     const pageSize = filters.limit ?? 24;
     const start = filters.cursor ? opportunities.findIndex((opportunity) => opportunity.id === filters.cursor) + 1 : 0;
     const page = opportunities.slice(Math.max(start, 0), Math.max(start, 0) + pageSize);
-    return { opportunities: page, nextCursor: start + pageSize < opportunities.length ? page.at(-1)?.id ?? null : null };
+    const attentionSummary = opportunities.reduce<Record<OpportunityAttentionStatus, number>>(
+      (summary, opportunity) => ({ ...summary, [opportunity.attentionStatus]: summary[opportunity.attentionStatus] + 1 }),
+      {
+        [OpportunityAttentionStatus.NORMAL]: 0,
+        [OpportunityAttentionStatus.DUE_SOON]: 0,
+        [OpportunityAttentionStatus.OVERDUE]: 0,
+        [OpportunityAttentionStatus.CRITICAL]: 0,
+      },
+    );
+    return {
+      opportunities: page,
+      nextCursor: start + pageSize < opportunities.length ? page.at(-1)?.id ?? null : null,
+      total: opportunities.length,
+      attentionSummary,
+    };
   }
 
   async findStageHistoryByOpportunityId(opportunityId: string): Promise<OpportunityStageHistory[]> {

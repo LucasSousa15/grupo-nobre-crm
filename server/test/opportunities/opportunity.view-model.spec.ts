@@ -35,5 +35,13 @@ describe('OpportunityViewModel', () => {
       contactEmail: 'mariana@techalpha.local',
       contactPhone: '11987650001',
     });
+    expect(response.transitionOptions).toEqual([
+      expect.objectContaining({
+        stage: OpportunityStage.QUOTE_PRESENTATION,
+        enabled: false,
+        requirements: expect.arrayContaining(['Inclua ao menos um item de brinde.', 'Informe a validade da proposta.']),
+      }),
+      expect.objectContaining({ stage: OpportunityStage.LOST, enabled: true, requiresLossReason: true }),
+    ]);
   });
 });

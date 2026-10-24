@@ -9,7 +9,7 @@ import { OpportunityReferencesRepository } from 'src/modules/opportunities/domai
 import { OpportunityAutomationRepository, OpportunityForAutomation } from 'src/modules/opportunities/domain/repositories/opportunity-automation.repository';
 import { CreateOpportunityProps, FindOpportunitiesFilters, OpportunityDetails, OpportunityPage, OpportunityStageHistory, UpdateOpportunityProps } from 'src/modules/opportunities/domain/types/opportunity';
 import { OpportunityStage } from 'src/modules/opportunities/domain/types/opportunity-stage';
-import { OpportunityAttentionService } from 'src/modules/opportunities/domain/services/opportunity-attention.service';
+import { OpportunityAttentionService, OpportunityAttentionStatus } from 'src/modules/opportunities/domain/services/opportunity-attention.service';
 import { ReminderType } from 'src/modules/reminders/domain/types/reminder';
 
 const opportunityDetailsInclude = {
@@ -87,21 +87,38 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
         ],
       } : {}),
     };
-    const pageSize = filters.limit ?? 24;
     const results = await this.prisma.opportunity.findMany({
       where,
       include: opportunityDetailsInclude,
       orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
-      take: pageSize + 1,
-      ...(filters.cursor ? { cursor: { id: filters.cursor }, skip: 1 } : {}),
     });
-    const hasMore = results.length > pageSize;
-    const opportunities = results.slice(0, pageSize)
-      .map((opportunity) => this.toDetails(opportunity))
-      .filter((opportunity) => !filters.attentionStatus || opportunity.attentionStatus === filters.attentionStatus);
+    const matchingOpportunities = results.map((opportunity) => this.toDetails(opportunity));
+    const attentionSummary = matchingOpportunities.reduce<Record<OpportunityAttentionStatus, number>>(
+      (summary, opportunity) => ({
+        ...summary,
+        [opportunity.attentionStatus]: summary[opportunity.attentionStatus] + 1,
+      }),
+      {
+        [OpportunityAttentionStatus.NORMAL]: 0,
+        [OpportunityAttentionStatus.DUE_SOON]: 0,
+        [OpportunityAttentionStatus.OVERDUE]: 0,
+        [OpportunityAttentionStatus.CRITICAL]: 0,
+      },
+    );
+    const filteredOpportunities = filters.attentionStatus
+      ? matchingOpportunities.filter((opportunity) => opportunity.attentionStatus === filters.attentionStatus)
+      : matchingOpportunities;
+    const pageSize = filters.limit ?? 24;
+    const cursorIndex = filters.cursor
+      ? filteredOpportunities.findIndex((opportunity) => opportunity.id === filters.cursor)
+      : -1;
+    const pageStart = cursorIndex + 1;
+    const opportunities = filteredOpportunities.slice(pageStart, pageStart + pageSize);
     return {
       opportunities,
-      nextCursor: hasMore ? results[pageSize - 1].id : null,
+      nextCursor: pageStart + pageSize < filteredOpportunities.length ? opportunities.at(-1)?.id ?? null : null,
+      total: filteredOpportunities.length,
+      attentionSummary,
     };
   }
 

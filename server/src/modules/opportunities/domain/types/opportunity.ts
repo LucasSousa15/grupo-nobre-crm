@@ -37,6 +37,8 @@ export interface OpportunityDetails {
 export interface OpportunityPage {
   opportunities: OpportunityDetails[];
   nextCursor: string | null;
+  total: number;
+  attentionSummary: Record<OpportunityAttentionStatus, number>;
 }
 
 export interface OpportunityStageHistory {
