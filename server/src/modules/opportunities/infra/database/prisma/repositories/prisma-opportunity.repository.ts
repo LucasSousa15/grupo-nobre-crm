@@ -155,7 +155,9 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
       where: { stage: { notIn: [PrismaOpportunityStage.CLOSED, PrismaOpportunityStage.LOST] } },
       select: {
         id: true,
+        code: true,
         stage: true,
+        seller: { select: { name: true, email: true, phone: true } },
         lastContactAt: true,
         nextFollowUpAt: true,
         proposalValidUntil: true,
