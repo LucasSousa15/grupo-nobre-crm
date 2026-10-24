@@ -57,15 +57,19 @@ export class FollowUpMonitorService {
     const proposalExpiringLimit = this.addDays(today, PROPOSAL_EXPIRING_WINDOW_DAYS);
     const eventApproachingLimit = this.addDays(today, CUSTOMER_EVENT_WINDOW_DAYS);
 
-    if (opportunity.nextFollowUpAt) {
-      if (opportunity.nextFollowUpAt <= now) {
-        reminders.push(this.reminder(opportunity, ReminderType.FOLLOW_UP_OVERDUE, opportunity.nextFollowUpAt));
-      } else if (opportunity.nextFollowUpAt <= followUpDueLimit) {
-        reminders.push(this.reminder(opportunity, ReminderType.FOLLOW_UP_DUE, opportunity.nextFollowUpAt));
+    const nextFollowUpAt = opportunity.nextFollowUpAt;
+    const hasCurrentNextFollowUp = nextFollowUpAt
+      && (!opportunity.lastContactAt || nextFollowUpAt > opportunity.lastContactAt);
+
+    if (hasCurrentNextFollowUp) {
+      if (nextFollowUpAt <= now) {
+        reminders.push(this.reminder(opportunity, ReminderType.FOLLOW_UP_OVERDUE, today));
+      } else if (nextFollowUpAt <= followUpDueLimit) {
+        reminders.push(this.reminder(opportunity, ReminderType.FOLLOW_UP_DUE, nextFollowUpAt));
       }
     } else if (opportunity.lastContactAt) {
       const dueAt = this.addDays(opportunity.lastContactAt, FOLLOW_UP_GRACE_DAYS);
-      if (dueAt <= now) reminders.push(this.reminder(opportunity, ReminderType.FOLLOW_UP_OVERDUE, dueAt));
+      if (dueAt <= now) reminders.push(this.reminder(opportunity, ReminderType.FOLLOW_UP_OVERDUE, today));
     }
 
     if (opportunity.proposalValidUntil) {

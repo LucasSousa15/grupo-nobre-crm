@@ -51,6 +51,8 @@ No MVP, os lembretes são criados para: follow-up vencido, ausência de próximo
 
 Para cada lembrete criado, `SellerNotificationService`, em `src/services/seller-notifications`, simula um e-mail para o endereço do vendedor e um SMS para seu telefone. Não há integração externa: os envios são registrados no log da aplicação. O SMS é ignorado com um aviso quando o telefone não foi cadastrado.
 
+Para um follow-up vencido, o monitor cria no máximo um lembrete por oportunidade a cada dia. Isso permite a escalada de atenção sem duplicar a mesma execução do cron. Quando o vendedor atualiza `lastContactAt`, um `nextFollowUpAt` anterior a esse contato é tratado como obsoleto.
+
 ## Decisões iniciais
 
 - `Company`, `Seller` e `Product` são entidades persistidas;

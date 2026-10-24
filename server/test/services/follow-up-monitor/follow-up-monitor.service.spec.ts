@@ -91,4 +91,37 @@ describe('FollowUpMonitorService', () => {
     expect(source.stage).toBe(OpportunityStage.FORECAST);
     expect(notifier.sendFollowUpNotification).toHaveBeenCalledTimes(1);
   });
+
+  it('creates at most one overdue follow-up reminder per opportunity each day', async () => {
+    const opportunities = new InMemoryOpportunityAutomationRepository([
+      opportunity({ nextFollowUpAt: new Date('2026-10-14T12:00:00.000Z') }),
+    ]);
+    const reminders = new InMemoryReminderRepository();
+    const notifier = notifications();
+    const service = new FollowUpMonitorService(opportunities, reminders, notifier);
+
+    expect(await service.execute(new Date('2026-10-15T08:00:00.000Z'))).toBe(1);
+    expect(await service.execute(new Date('2026-10-15T16:00:00.000Z'))).toBe(0);
+    expect(await service.execute(new Date('2026-10-16T08:00:00.000Z'))).toBe(1);
+    expect(reminders.reminders).toMatchObject([
+      { type: ReminderType.FOLLOW_UP_OVERDUE, dueAt: new Date('2026-10-15T00:00:00.000Z') },
+      { type: ReminderType.FOLLOW_UP_OVERDUE, dueAt: new Date('2026-10-16T00:00:00.000Z') },
+    ]);
+    expect(notifier.sendFollowUpNotification).toHaveBeenCalledTimes(2);
+  });
+
+  it('ignores a stale next follow-up after the seller records a new contact', async () => {
+    const opportunities = new InMemoryOpportunityAutomationRepository([
+      opportunity({
+        lastContactAt: new Date('2026-10-15T07:00:00.000Z'),
+        nextFollowUpAt: new Date('2026-10-14T12:00:00.000Z'),
+      }),
+    ]);
+    const reminders = new InMemoryReminderRepository();
+    const notifier = notifications();
+
+    expect(await new FollowUpMonitorService(opportunities, reminders, notifier).execute(new Date('2026-10-15T12:00:00.000Z'))).toBe(0);
+    expect(reminders.reminders).toHaveLength(0);
+    expect(notifier.sendFollowUpNotification).not.toHaveBeenCalled();
+  });
 });
