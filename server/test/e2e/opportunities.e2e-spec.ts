@@ -51,6 +51,7 @@ describe('Opportunities API (e2e)', () => {
         companyId: company.id,
         sellerId: seller.id,
         estimatedValue: 4500,
+        customerEventAt: '2026-11-30',
         items: [{ productId: product.id, quantity: 300 }],
       })
       .expect(201);
@@ -61,11 +62,20 @@ describe('Opportunities API (e2e)', () => {
     expect(persisted?.items[0]).toMatchObject({ productId: product.id, quantity: 300 });
   });
 
+  it('requires an event date for a new opportunity', async () => {
+    const { company, seller } = await createReferences();
+
+    await request(app.getHttpServer())
+      .post('/opportunities')
+      .send({ code: 'OPP-E2E-MISSING-EVENT', companyId: company.id, sellerId: seller.id })
+      .expect(400);
+  });
+
   it('moves an opportunity to quote presentation and appends its stage history in the test database', async () => {
     const { company, seller, product } = await createReferences();
     const created = await request(app.getHttpServer())
       .post('/opportunities')
-      .send({ code: 'OPP-E2E-002', companyId: company.id, sellerId: seller.id, estimatedValue: 9800, items: [{ productId: product.id, quantity: 120 }] })
+      .send({ code: 'OPP-E2E-002', companyId: company.id, sellerId: seller.id, estimatedValue: 9800, customerEventAt: '2026-11-30', proposalValidUntil: '2026-11-29', items: [{ productId: product.id, quantity: 120 }] })
       .expect(201);
 
     await request(app.getHttpServer())
@@ -85,7 +95,7 @@ describe('Opportunities API (e2e)', () => {
   it('rejects an invalid direct transition to Closed without persisting history', async () => {
     const { company, seller } = await createReferences();
     const opportunity = await prisma.opportunity.create({
-      data: { code: 'OPP-E2E-003', companyId: company.id, sellerId: seller.id },
+      data: { code: 'OPP-E2E-003', companyId: company.id, sellerId: seller.id, customerEventAt: new Date('2026-11-30T00:00:00.000Z') },
     });
 
     const response = await request(app.getHttpServer())
@@ -106,6 +116,7 @@ describe('Opportunities API (e2e)', () => {
         sellerId: seller.id,
         stage: 'FOLLOW_UP',
         lastContactAt: new Date('2026-10-10T12:00:00.000Z'),
+        customerEventAt: new Date('2026-11-30T00:00:00.000Z'),
       },
     });
     await prisma.reminder.createMany({

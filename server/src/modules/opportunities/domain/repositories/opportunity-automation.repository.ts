@@ -8,7 +8,7 @@ export interface OpportunityForAutomation {
   lastContactAt: Date | null;
   nextFollowUpAt: Date | null;
   proposalValidUntil: Date | null;
-  customerEventAt: Date | null;
+  customerEventAt: Date;
 }
 
 export abstract class OpportunityAutomationRepository {

@@ -47,7 +47,7 @@ export class OpportunitiesController {
       lastContactAt: this.toDate(dto.lastContactAt),
       nextFollowUpAt: this.toDate(dto.nextFollowUpAt),
       proposalValidUntil: this.toDate(dto.proposalValidUntil),
-      customerEventAt: this.toDate(dto.customerEventAt),
+      customerEventAt: new Date(dto.customerEventAt),
     });
     return { opportunity: OpportunityViewModel.toHTTP(opportunity) };
   }
@@ -62,7 +62,7 @@ export class OpportunitiesController {
       lastContactAt: this.toNullableDate(dto.lastContactAt),
       nextFollowUpAt: this.toNullableDate(dto.nextFollowUpAt),
       proposalValidUntil: this.toNullableDate(dto.proposalValidUntil),
-      customerEventAt: this.toNullableDate(dto.customerEventAt),
+      customerEventAt: this.toDate(dto.customerEventAt),
     });
     return { opportunity: OpportunityViewModel.toHTTP(opportunity) };
   }

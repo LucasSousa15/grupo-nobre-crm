@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsDateString, IsNumber, IsOptional, IsUUID, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsDateString, IsNumber, IsOptional, IsUUID, Min, ValidateIf, ValidateNested } from 'class-validator';
 import { OpportunityItemDto } from './opportunity-item.dto';
 
 export class UpdateOpportunityDto {
@@ -36,10 +36,10 @@ export class UpdateOpportunityDto {
   @IsDateString()
   proposalValidUntil?: string | null;
 
-  @ApiPropertyOptional({ example: '2026-11-30', nullable: true })
-  @IsOptional()
+  @ApiPropertyOptional({ example: '2026-11-30', description: 'Data do evento; não pode ser removida.' })
+  @ValidateIf((_, value) => value !== undefined)
   @IsDateString()
-  customerEventAt?: string | null;
+  customerEventAt?: string;
 
   @ApiPropertyOptional({ type: [OpportunityItemDto], description: 'Substitui integralmente os itens quando informado.' })
   @IsOptional()

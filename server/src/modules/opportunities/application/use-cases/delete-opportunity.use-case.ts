@@ -16,6 +16,8 @@ export class DeleteOpportunityUseCase {
       stage: opportunity.stage,
       estimatedValue: opportunity.estimatedValue,
       itemsCount: opportunity.items.length,
+      proposalValidUntil: opportunity.proposalValidUntil,
+      customerEventAt: opportunity.customerEventAt,
     }).assertCanBeDeleted();
     await this.opportunities.delete(id);
   }

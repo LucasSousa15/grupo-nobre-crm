@@ -5,12 +5,14 @@ import { StagePrerequisiteError } from 'src/modules/opportunities/domain/errors/
 import { OpportunityStage } from 'src/modules/opportunities/domain/types/opportunity-stage';
 import { InMemoryOpportunityRepository } from '../repositories/in-memory-opportunity.repository';
 
-const baseOpportunity = (overrides: Partial<{ stage: OpportunityStage; estimatedValue: number | null; itemsCount: number }> = {}) => ({
+const baseOpportunity = (overrides: Partial<{ stage: OpportunityStage; estimatedValue: number | null; itemsCount: number; proposalValidUntil: Date | null; customerEventAt: Date | null }> = {}) => ({
   id: 'opportunity-id',
   code: 'OPP-2001',
   stage: OpportunityStage.FIRST_CONTACT,
   estimatedValue: 4500,
   itemsCount: 1,
+  proposalValidUntil: new Date('2026-11-29T00:00:00.000Z'),
+  customerEventAt: new Date('2026-11-30T00:00:00.000Z'),
   ...overrides,
 });
 
@@ -33,6 +35,13 @@ describe('ChangeOpportunityStageUseCase', () => {
 
   it('does not allow quote presentation without an item', async () => {
     const useCase = new ChangeOpportunityStageUseCase(new InMemoryOpportunityRepository([baseOpportunity({ itemsCount: 0 })]));
+    await expect(useCase.execute({ opportunityId: 'opportunity-id', stage: OpportunityStage.QUOTE_PRESENTATION })).rejects.toBeInstanceOf(StagePrerequisiteError);
+  });
+
+  it('requires proposal validity through the eve of the event', async () => {
+    const useCase = new ChangeOpportunityStageUseCase(new InMemoryOpportunityRepository([
+      baseOpportunity({ proposalValidUntil: new Date('2026-11-28T00:00:00.000Z') }),
+    ]));
     await expect(useCase.execute({ opportunityId: 'opportunity-id', stage: OpportunityStage.QUOTE_PRESENTATION })).rejects.toBeInstanceOf(StagePrerequisiteError);
   });
 

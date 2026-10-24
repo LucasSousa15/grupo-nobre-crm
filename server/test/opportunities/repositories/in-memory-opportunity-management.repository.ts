@@ -42,7 +42,7 @@ export class InMemoryOpportunityManagementRepository implements OpportunityManag
       lastContactAt: data.lastContactAt ?? null,
       nextFollowUpAt: data.nextFollowUpAt ?? null,
       proposalValidUntil: data.proposalValidUntil ?? null,
-      customerEventAt: data.customerEventAt ?? null,
+      customerEventAt: data.customerEventAt,
       lossReason: null,
       attentionStatus: OpportunityAttentionStatus.NORMAL,
       items: (data.items ?? []).map((item) => ({ id: crypto.randomUUID(), productId: item.productId, productName: item.productId, quantity: item.quantity })),

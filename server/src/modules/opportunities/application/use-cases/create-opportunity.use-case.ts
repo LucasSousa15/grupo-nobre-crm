@@ -15,6 +15,7 @@ export class CreateOpportunityUseCase {
 
   async execute(input: CreateOpportunityProps) {
     const code = input.code.trim().toUpperCase();
+    Opportunity.assertEventDateProvided(input.customerEventAt);
     if (await this.opportunities.findByCode(code)) throw new OpportunityCodeAlreadyUsedError();
     await this.validateReferences(input.companyId, input.sellerId, input.items ?? []);
     return this.opportunities.create({ ...input, code });

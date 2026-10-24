@@ -33,7 +33,7 @@ const opportunity = (overrides: Partial<OpportunityForAutomation> = {}): Opportu
   lastContactAt: null,
   nextFollowUpAt: null,
   proposalValidUntil: null,
-  customerEventAt: null,
+  customerEventAt: new Date('2026-12-31T00:00:00.000Z'),
   ...overrides,
 });
 

@@ -27,13 +27,17 @@ export class UpdateOpportunityUseCase {
     const items = input.items ?? current.items.map(({ productId, quantity }) => ({ productId, quantity }));
     if (input.items !== undefined) await this.validateItems(items);
     const estimatedValue = input.estimatedValue === undefined ? current.estimatedValue : input.estimatedValue;
+    const proposalValidUntil = input.proposalValidUntil === undefined ? current.proposalValidUntil : input.proposalValidUntil;
+    const customerEventAt = input.customerEventAt === undefined ? current.customerEventAt : input.customerEventAt;
     Opportunity.restore({
       id: current.id,
       code: current.code,
       stage: current.stage,
       estimatedValue: current.estimatedValue,
       itemsCount: current.items.length,
-    }).assertCurrentStageInvariants(estimatedValue, items.length);
+      proposalValidUntil: current.proposalValidUntil,
+      customerEventAt: current.customerEventAt,
+    }).assertCurrentStageInvariants(estimatedValue, items.length, proposalValidUntil, customerEventAt);
 
     return this.opportunities.update(id, input);
   }

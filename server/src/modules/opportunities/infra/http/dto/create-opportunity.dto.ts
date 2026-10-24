@@ -40,10 +40,9 @@ export class CreateOpportunityDto {
   @IsDateString()
   proposalValidUntil?: string;
 
-  @ApiPropertyOptional({ example: '2026-11-30' })
-  @IsOptional()
+  @ApiProperty({ example: '2026-11-30', description: 'Data do evento, prazo final comercial da oportunidade.' })
   @IsDateString()
-  customerEventAt?: string;
+  customerEventAt!: string;
 
   @ApiPropertyOptional({ type: [OpportunityItemDto] })
   @IsOptional()

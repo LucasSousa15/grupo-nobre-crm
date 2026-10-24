@@ -5,7 +5,7 @@ export interface OpportunityForFollowUpPolicy {
   lastContactAt: Date | null;
   nextFollowUpAt: Date | null;
   proposalValidUntil: Date | null;
-  customerEventAt: Date | null;
+  customerEventAt: Date;
 }
 
 export const FOLLOW_UP_GRACE_DAYS = 3;
@@ -44,11 +44,9 @@ export class FollowUpReminderPolicy {
       }
     }
 
-    if (opportunity.customerEventAt) {
-      const eventAt = this.startOfUtcDay(opportunity.customerEventAt);
-      if (eventAt >= today && eventAt <= eventApproachingLimit) {
-        reminders.push(this.reminder(opportunity.id, ReminderType.CUSTOMER_EVENT_APPROACHING, eventAt));
-      }
+    const eventAt = this.startOfUtcDay(opportunity.customerEventAt);
+    if (eventAt >= today && eventAt <= eventApproachingLimit) {
+      reminders.push(this.reminder(opportunity.id, ReminderType.CUSTOMER_EVENT_APPROACHING, eventAt));
     }
 
     return reminders;

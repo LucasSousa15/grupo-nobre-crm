@@ -23,7 +23,7 @@ export interface OpportunityDetails {
   lastContactAt: Date | null;
   nextFollowUpAt: Date | null;
   proposalValidUntil: Date | null;
-  customerEventAt: Date | null;
+  customerEventAt: Date;
   lossReason: string | null;
   attentionStatus: OpportunityAttentionStatus;
   items: OpportunityItemDetails[];
@@ -39,7 +39,7 @@ export interface CreateOpportunityProps {
   lastContactAt?: Date;
   nextFollowUpAt?: Date;
   proposalValidUntil?: Date;
-  customerEventAt?: Date;
+  customerEventAt: Date;
   items?: OpportunityItemInput[];
 }
 
@@ -50,7 +50,7 @@ export interface UpdateOpportunityProps {
   lastContactAt?: Date | null;
   nextFollowUpAt?: Date | null;
   proposalValidUntil?: Date | null;
-  customerEventAt?: Date | null;
+  customerEventAt?: Date;
   items?: OpportunityItemInput[];
 }
 

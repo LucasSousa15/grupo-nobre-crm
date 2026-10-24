@@ -38,6 +38,8 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
       stage: opportunity.stage as OpportunityStage,
       estimatedValue: opportunity.estimatedValue?.toNumber() ?? null,
       itemsCount: opportunity.items.length,
+      proposalValidUntil: opportunity.proposalValidUntil,
+      customerEventAt: opportunity.customerEventAt,
     };
   }
 
