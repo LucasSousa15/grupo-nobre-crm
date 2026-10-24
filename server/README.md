@@ -29,6 +29,8 @@ O primeiro fluxo entregue é a alteração de estágio de uma oportunidade, com 
 
 Documentação Swagger: `http://localhost:3000/docs`.
 
+`CORS_ORIGIN` é obrigatória e deve conter uma única origem, sem caminho. Para o frontend local em Next.js, use `http://localhost:3001`.
+
 Para encerrar o banco sem apagar os dados: `docker compose stop database`. Para remover também o volume local: `docker compose down -v`.
 
 ## Testes E2E
@@ -72,6 +74,10 @@ Para os demais problemas da operação, a evolução proposta é:
 - E-mail e SMS são simulações registradas em log; uma integração real exigiria provedores, filas, retentativas e observabilidade de entrega.
 - O cron é executado no processo da API. Em uma implantação com múltiplas réplicas, ele deve ser movido para um worker único ou coordenado por lock distribuído.
 - A data do evento é o prazo comercial final, mas o sistema não calcula automaticamente prazos de produção ou transporte; estes serão necessários para derivar uma data de corte logística mais precisa.
+
+## Segurança em produção
+
+Autenticação completa não faz parte do MVP. Em produção, a API deve usar OIDC/OAuth com tokens ou cookies seguros, RBAC por perfil comercial, Helmet, rate limiting, TLS, auditoria e o princípio de menor privilégio no banco. Segredos permanecem fora do código e são fornecidos pelo ambiente. O CORS aceita somente a origem única definida em `CORS_ORIGIN`; a API não inicia se essa variável estiver ausente ou contiver URL com caminho.
 
 ## Uso de IA
 
