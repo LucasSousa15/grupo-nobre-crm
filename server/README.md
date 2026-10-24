@@ -15,12 +15,21 @@ O primeiro fluxo entregue é a alteração de estágio de uma oportunidade, com 
 
 ## Executar
 
-1. Copie `.env.example` para `.env` e ajuste a conexão PostgreSQL.
-2. Execute `npm install`.
-3. Execute `npm run db:generate` e `npm run db:migrate`.
-4. Execute `npm run start:dev`.
+1. Dentro de `server/`, suba o PostgreSQL local:
+
+   ```bash
+   docker compose up -d database
+   ```
+
+2. Copie `.env.example` para `.env` dentro de `server/`. A URL de exemplo já aponta para o banco do Compose.
+3. Execute `npm install`.
+4. Execute `npm run db:generate` e `npm run db:migrate -- --name init`.
+5. Execute `npm run db:seed` para carregar os dados do case.
+6. Execute `npm run start:dev`.
 
 Documentação Swagger: `http://localhost:3000/docs`.
+
+Para encerrar o banco sem apagar os dados: `docker compose stop database`. Para remover também o volume local: `docker compose down -v`.
 
 ## Decisões iniciais
 
