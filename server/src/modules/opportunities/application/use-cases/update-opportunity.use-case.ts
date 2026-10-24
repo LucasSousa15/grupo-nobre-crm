@@ -29,6 +29,7 @@ export class UpdateOpportunityUseCase {
     const estimatedValue = input.estimatedValue === undefined ? current.estimatedValue : input.estimatedValue;
     const proposalValidUntil = input.proposalValidUntil === undefined ? current.proposalValidUntil : input.proposalValidUntil;
     const customerEventAt = input.customerEventAt === undefined ? current.customerEventAt : input.customerEventAt;
+    Opportunity.assertProposalDeadline(proposalValidUntil, customerEventAt);
     Opportunity.restore({
       id: current.id,
       code: current.code,

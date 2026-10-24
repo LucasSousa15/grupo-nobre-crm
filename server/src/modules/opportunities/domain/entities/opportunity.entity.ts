@@ -78,6 +78,15 @@ export class Opportunity {
     if (!customerEventAt) throw new OpportunityEventDateRequiredError();
   }
 
+  static assertProposalDeadline(proposalValidUntil: Date | null | undefined, customerEventAt: Date | null | undefined): void {
+    if (!proposalValidUntil) return;
+    Opportunity.assertEventDateProvided(customerEventAt);
+    const eventDeadline = this.addDays(this.startOfUtcDay(customerEventAt), -1);
+    if (this.startOfUtcDay(proposalValidUntil) < eventDeadline) {
+      throw new StagePrerequisiteError('QUOTE_PRESENTATION', 'A proposta deve ser válida até pelo menos a véspera do evento.');
+    }
+  }
+
   private assertQuoteData(stage: OpportunityStage, estimatedValue: number | null, itemsCount: number, proposalValidUntil: Date | null, customerEventAt: Date | null): void {
     Opportunity.assertEventDateProvided(customerEventAt);
     if (estimatedValue === null || estimatedValue <= 0) {
@@ -89,19 +98,16 @@ export class Opportunity {
     if (!proposalValidUntil) {
       throw new StagePrerequisiteError(stage, 'Informe a validade da proposta.');
     }
-    const eventDeadline = this.addDays(this.startOfUtcDay(customerEventAt), -1);
-    if (this.startOfUtcDay(proposalValidUntil) < eventDeadline) {
-      throw new StagePrerequisiteError(stage, 'A proposta deve ser válida até pelo menos a véspera do evento.');
-    }
+    Opportunity.assertProposalDeadline(proposalValidUntil, customerEventAt);
   }
 
-  private startOfUtcDay(date: Date): Date {
+  private static startOfUtcDay(date: Date): Date {
     const normalized = new Date(date);
     normalized.setUTCHours(0, 0, 0, 0);
     return normalized;
   }
 
-  private addDays(date: Date, days: number): Date {
+  private static addDays(date: Date, days: number): Date {
     const result = new Date(date);
     result.setUTCDate(result.getUTCDate() + days);
     return result;

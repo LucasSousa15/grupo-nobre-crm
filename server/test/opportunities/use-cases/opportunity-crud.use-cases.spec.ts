@@ -47,6 +47,15 @@ describe('Opportunity CRUD use cases', () => {
     })).rejects.toMatchObject({ code: 'OPPORTUNITY_EVENT_DATE_REQUIRED' });
   });
 
+  it('does not accept a proposal that expires before the event deadline', async () => {
+    const repository = repositoryWithReferences();
+    await expect(new CreateOpportunityUseCase(repository, repository).execute({
+      code: 'OPP-2012', companyId: 'company-id', sellerId: 'seller-id',
+      customerEventAt: new Date('2026-11-30T00:00:00.000Z'),
+      proposalValidUntil: new Date('2026-11-28T00:00:00.000Z'),
+    })).rejects.toBeInstanceOf(StagePrerequisiteError);
+  });
+
   it('does not create duplicate codes or invalid references', async () => {
     const repository = repositoryWithReferences([opportunity()]);
     const create = new CreateOpportunityUseCase(repository, repository);
