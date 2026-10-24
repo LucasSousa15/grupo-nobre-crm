@@ -31,6 +31,18 @@ Documentação Swagger: `http://localhost:3000/docs`.
 
 Para encerrar o banco sem apagar os dados: `docker compose stop database`. Para remover também o volume local: `docker compose down -v`.
 
+## Testes E2E
+
+Os testes E2E usam um PostgreSQL separado, na porta `5433`, e nunca acessam o banco de desenvolvimento.
+
+```bash
+npm run db:test:up
+npm run db:test:migrate
+npm run test:e2e
+```
+
+Após os testes, remova o banco isolado e seu volume com `npm run db:test:down`.
+
 ## Decisões iniciais
 
 - `Company`, `Seller` e `Product` são entidades persistidas;
