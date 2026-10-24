@@ -10,7 +10,7 @@ const opportunitySchema = z.object({
   lastContactAt: z.string().nullable(),
   nextFollowUpAt: z.string().nullable(),
   proposalValidUntil: z.string().nullable(),
-  customerEventAt: z.string().nullable(),
+  customerEventAt: z.string(),
   lossReason: z.string().nullable(),
   company: z.object({ id: z.string().uuid(), name: z.string() }),
   seller: z.object({ id: z.string().uuid(), name: z.string() }),

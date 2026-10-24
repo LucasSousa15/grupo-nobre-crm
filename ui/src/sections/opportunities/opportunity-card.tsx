@@ -21,6 +21,7 @@ export function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
       <dl className="mt-4 space-y-2 border-t border-slate-100 pt-3 text-xs text-slate-600">
         <div className="flex justify-between gap-3"><dt>Último contato</dt><dd className="font-medium text-slate-800">{formatDate(opportunity.lastContactAt)}</dd></div>
         <div className="flex justify-between gap-3"><dt>Próximo follow-up</dt><dd className="font-medium text-slate-800">{formatDate(opportunity.nextFollowUpAt)}</dd></div>
+        <div className="flex justify-between gap-3"><dt>Evento</dt><dd className="font-medium text-slate-800">{formatDate(opportunity.customerEventAt)}</dd></div>
       </dl>
     </article>
   );

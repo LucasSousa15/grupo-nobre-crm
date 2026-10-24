@@ -21,7 +21,7 @@ export interface Opportunity {
   lastContactAt: string | null;
   nextFollowUpAt: string | null;
   proposalValidUntil: string | null;
-  customerEventAt: string | null;
+  customerEventAt: string;
   lossReason: string | null;
   company: { id: string; name: string };
   seller: { id: string; name: string };
