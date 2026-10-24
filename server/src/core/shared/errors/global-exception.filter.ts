@@ -1,8 +1,13 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { ApplicationError } from './application.error';
+import { OperationalMetricsService } from 'src/core/observability/operational-metrics.service';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(GlobalExceptionFilter.name);
+
+  constructor(private readonly metrics: OperationalMetricsService) {}
+
   catch(exception: unknown, host: ArgumentsHost): void {
     const context = host.switchToHttp();
     const response = context.getResponse();
@@ -27,8 +32,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       } else {
         message = body;
       }
+    } else {
+      this.metrics.recordUnexpectedError();
+      this.logger.error(
+        { requestId: request.requestId, method: request.method, path: request.path, statusCode: status },
+        exception instanceof Error ? exception.stack : undefined,
+      );
     }
 
-    response.status(status).json({ statusCode: status, code, message, details, path: request.url });
+    response.status(status).json({ statusCode: status, code, message, details, path: request.path, requestId: request.requestId });
   }
 }

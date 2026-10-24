@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  EVENT_ELAPSED_LOSS_REASON,
+  DELIVERY_DEADLINE_ELAPSED_LOSS_REASON,
   CloseExpiredOpportunityUseCase,
 } from "src/modules/opportunities/application/use-cases/close-expired-opportunity.use-case";
 import { OpportunitySnapshot } from "src/modules/opportunities/domain/entities/opportunity.entity";
@@ -21,14 +21,14 @@ const opportunity = (
 });
 
 describe("CloseExpiredOpportunityUseCase", () => {
-  it("moves an open opportunity to lost on the day after its event and records the reason", async () => {
+  it("moves an open opportunity to lost on the day after its delivery cutoff and records the reason", async () => {
     const repository = new InMemoryOpportunityRepository([opportunity()]);
-    const useCase = new CloseExpiredOpportunityUseCase(repository);
+    const useCase = new CloseExpiredOpportunityUseCase(repository, 3);
 
     expect(
       await useCase.execute(
         "opportunity-id",
-        new Date("2026-10-16T08:00:00.000Z"),
+        new Date("2026-10-13T08:00:00.000Z"),
       ),
     ).toBe(true);
     expect(repository.opportunities[0].stage).toBe(OpportunityStage.LOST);
@@ -36,28 +36,28 @@ describe("CloseExpiredOpportunityUseCase", () => {
       expect.objectContaining({
         fromStage: OpportunityStage.FOLLOW_UP,
         toStage: OpportunityStage.LOST,
-        lossReason: EVENT_ELAPSED_LOSS_REASON,
+        lossReason: DELIVERY_DEADLINE_ELAPSED_LOSS_REASON,
       }),
     ]);
   });
 
-  it("keeps the opportunity open through the event day and ignores final stages", async () => {
+  it("keeps the opportunity open through its delivery cutoff and ignores final stages", async () => {
     const repository = new InMemoryOpportunityRepository([
       opportunity({ id: "event-today" }),
       opportunity({ id: "already-lost", stage: OpportunityStage.LOST }),
     ]);
-    const useCase = new CloseExpiredOpportunityUseCase(repository);
+    const useCase = new CloseExpiredOpportunityUseCase(repository, 3);
 
     expect(
       await useCase.execute(
         "event-today",
-        new Date("2026-10-15T23:59:59.000Z"),
+        new Date("2026-10-12T23:59:59.000Z"),
       ),
     ).toBe(false);
     expect(
       await useCase.execute(
         "already-lost",
-        new Date("2026-10-16T08:00:00.000Z"),
+        new Date("2026-10-13T08:00:00.000Z"),
       ),
     ).toBe(false);
     expect(repository.histories).toHaveLength(0);

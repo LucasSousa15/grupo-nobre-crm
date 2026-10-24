@@ -2,6 +2,7 @@ import {
   CreateReminderInput,
   ReminderType,
 } from "src/modules/reminders/domain/types/reminder";
+import { OpportunityEventDeadlinePolicy } from "./opportunity-event-deadline-policy.service";
 
 export interface OpportunityForFollowUpPolicy {
   id: string;
@@ -20,6 +21,7 @@ export class FollowUpReminderPolicy {
   static collect(
     opportunity: OpportunityForFollowUpPolicy,
     now = new Date(),
+    eventDeliveryLeadDays = 0,
   ): CreateReminderInput[] {
     const reminders: CreateReminderInput[] = [];
     const today = this.startOfUtcDay(now);
@@ -28,7 +30,7 @@ export class FollowUpReminderPolicy {
       today,
       PROPOSAL_EXPIRING_WINDOW_DAYS,
     );
-    const eventApproachingLimit = this.addDays(
+    const deliveryCutoffApproachingLimit = this.addDays(
       today,
       CUSTOMER_EVENT_WINDOW_DAYS,
     );
@@ -84,8 +86,11 @@ export class FollowUpReminderPolicy {
       }
     }
 
-    const eventAt = this.startOfUtcDay(opportunity.customerEventAt);
-    if (eventAt >= today && eventAt <= eventApproachingLimit) {
+    const deliveryCutoffAt = OpportunityEventDeadlinePolicy.cutoffAt(
+      opportunity,
+      eventDeliveryLeadDays,
+    );
+    if (deliveryCutoffAt >= today && deliveryCutoffAt <= deliveryCutoffApproachingLimit) {
       // `dueAt` representa o dia do lembrete para permitir uma notificação por dia
       // na janela crítica. A data real do evento segue como contexto da notificação.
       reminders.push(

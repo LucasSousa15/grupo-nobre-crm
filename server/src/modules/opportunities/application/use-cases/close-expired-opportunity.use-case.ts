@@ -6,13 +6,17 @@ import {
   FINAL_OPPORTUNITY_STAGES,
   OpportunityStage,
 } from "../../domain/types/opportunity-stage";
+import { env } from "src/core/config/env";
 
-export const EVENT_ELAPSED_LOSS_REASON =
-  "Evento realizado sem fechamento da oportunidade.";
+export const DELIVERY_DEADLINE_ELAPSED_LOSS_REASON =
+  "Prazo de entrega incompatÃ­vel com a data do evento.";
 
 @Injectable()
 export class CloseExpiredOpportunityUseCase {
-  constructor(private readonly opportunities: OpportunityRepository) {}
+  constructor(
+    private readonly opportunities: OpportunityRepository,
+    private readonly deliveryLeadDays = env.eventDeliveryLeadDays,
+  ) {}
 
   async execute(opportunityId: string, now = new Date()): Promise<boolean> {
     const snapshot = await this.opportunities.findById(opportunityId);
@@ -27,6 +31,7 @@ export class CloseExpiredOpportunityUseCase {
       !OpportunityEventDeadlinePolicy.hasElapsed(
         { customerEventAt: snapshot.customerEventAt },
         now,
+        this.deliveryLeadDays,
       )
     ) {
       return false;
@@ -35,13 +40,13 @@ export class CloseExpiredOpportunityUseCase {
     const opportunity = Opportunity.restore(snapshot);
     opportunity.assertCanChangeStage(
       OpportunityStage.LOST,
-      EVENT_ELAPSED_LOSS_REASON,
+      DELIVERY_DEADLINE_ELAPSED_LOSS_REASON,
     );
     await this.opportunities.recordStageTransition({
       opportunityId: opportunity.id,
       fromStage: opportunity.stage,
       toStage: OpportunityStage.LOST,
-      lossReason: EVENT_ELAPSED_LOSS_REASON,
+      lossReason: DELIVERY_DEADLINE_ELAPSED_LOSS_REASON,
     });
     return true;
   }

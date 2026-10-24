@@ -7,6 +7,7 @@ import { ProductsModule } from './modules/products/products.module';
 import { RemindersModule } from './modules/reminders/reminders.module';
 import { SellersModule } from './modules/sellers/sellers.module';
 import { FollowUpMonitorModule } from './services/follow-up-monitor/follow-up-monitor.module';
+import { OperationalModule } from './core/observability/operational.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { FollowUpMonitorModule } from './services/follow-up-monitor/follow-up-mo
     SellersModule,
     RemindersModule,
     FollowUpMonitorModule,
+    OperationalModule,
   ],
 })
 export class AppModule {}

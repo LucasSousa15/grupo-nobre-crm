@@ -18,6 +18,17 @@ const opportunity = (
 });
 
 describe("FollowUpReminderPolicy", () => {
+  it("uses the configured delivery cutoff instead of the event date for urgency", () => {
+    const reminders = FollowUpReminderPolicy.collect(
+      opportunity({ customerEventAt: new Date("2026-10-20T00:00:00.000Z") }),
+      new Date("2026-10-10T08:00:00.000Z"),
+      7,
+    );
+
+    expect(reminders).toContainEqual(expect.objectContaining({
+      type: ReminderType.CUSTOMER_EVENT_APPROACHING,
+    }));
+  });
   it("creates an overdue follow-up reminder for each overdue day", () => {
     const source = opportunity({
       nextFollowUpAt: new Date("2026-10-14T12:00:00.000Z"),

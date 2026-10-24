@@ -3,13 +3,21 @@ export interface OpportunityForEventDeadlinePolicy {
 }
 
 export class OpportunityEventDeadlinePolicy {
+  static cutoffAt(
+    opportunity: OpportunityForEventDeadlinePolicy,
+    deliveryLeadDays = 0,
+  ): Date {
+    const cutoff = this.startOfUtcDay(opportunity.customerEventAt);
+    cutoff.setUTCDate(cutoff.getUTCDate() - deliveryLeadDays);
+    return cutoff;
+  }
+
   static hasElapsed(
     opportunity: OpportunityForEventDeadlinePolicy,
     now = new Date(),
+    deliveryLeadDays = 0,
   ): boolean {
-    return (
-      this.startOfUtcDay(opportunity.customerEventAt) < this.startOfUtcDay(now)
-    );
+    return this.cutoffAt(opportunity, deliveryLeadDays) < this.startOfUtcDay(now);
   }
 
   private static startOfUtcDay(date: Date): Date {
