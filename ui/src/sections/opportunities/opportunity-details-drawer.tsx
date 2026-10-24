@@ -1,11 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarDays, CircleDollarSign, ContactRound, Mail, Phone, X } from "lucide-react";
+import { ArrowRight, CalendarDays, CircleDollarSign, ContactRound, History, Mail, Phone, RefreshCw, X } from "lucide-react";
 import { opportunityStages, stageLabels, type Opportunity, type OpportunityStage } from "@/hooks/opportunities/types";
+import { useOpportunityHistory } from "@/hooks/opportunities/use-opportunity-history";
 
 function formatDate(value: string | null) {
   return value ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(value)) : "Não informado";
+}
+
+function formatTimestamp(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
 export function OpportunityDetailsDrawer({
@@ -23,6 +28,7 @@ export function OpportunityDetailsDrawer({
 }) {
   const [stage, setStage] = useState<OpportunityStage>(requestedStage ?? opportunity.stage);
   const [lossReason, setLossReason] = useState(opportunity.lossReason ?? "");
+  const historyQuery = useOpportunityHistory(opportunity.id);
 
   const canMove = stage !== opportunity.stage && (stage !== "LOST" || lossReason.trim().length > 0);
 
@@ -77,6 +83,27 @@ export function OpportunityDetailsDrawer({
             <ul className="mt-3 space-y-2">
               {opportunity.items.map((item) => <li key={item.id} className="flex items-center justify-between rounded-lg bg-nobre-paper-shade px-3 py-2 text-sm text-nobre-forest-deep"><span>{item.productName}</span><span className="font-semibold">{item.quantity} un.</span></li>)}
             </ul>
+          </section>
+
+          <section className="mt-8 border-t border-nobre-forest-deep/10 pt-6" aria-labelledby="opportunity-history-title">
+            <h3 id="opportunity-history-title" className="inline-flex items-center gap-2 text-sm font-semibold text-nobre-forest-deep"><History size={16} aria-hidden />Linha do tempo</h3>
+            {historyQuery.isLoading && <p className="mt-3 text-sm text-nobre-ink-soft" role="status">Carregando movimentações...</p>}
+            {historyQuery.isError && <div className="mt-3 rounded-lg border border-nobre-crown/70 bg-nobre-crown/25 p-3 text-sm text-nobre-pitch" role="alert">
+              <p>Não foi possível carregar o histórico.</p>
+              <button type="button" onClick={() => void historyQuery.refetch()} className="mt-2 inline-flex cursor-pointer items-center gap-1 text-sm font-semibold text-nobre-forest underline-offset-4 hover:underline"><RefreshCw size={14} aria-hidden />Tentar novamente</button>
+            </div>}
+            {!historyQuery.isLoading && !historyQuery.isError && historyQuery.data?.length === 0 && <p className="mt-3 rounded-lg border border-dashed border-nobre-forest/20 bg-nobre-paper-shade p-3 text-sm text-nobre-ink-soft">Nenhuma mudança de etapa registrada ainda.</p>}
+            {!historyQuery.isLoading && !historyQuery.isError && historyQuery.data && historyQuery.data.length > 0 && (
+              <ol className="mt-4 space-y-4 border-l-2 border-nobre-moss pl-4">
+                {historyQuery.data.map((entry) => (
+                  <li key={entry.id} className="relative">
+                    <span aria-hidden className="absolute -left-[1.375rem] top-1 size-3 rounded-full border-2 border-nobre-paper bg-nobre-forest" />
+                    <p className="flex flex-wrap items-center gap-1 text-sm font-medium text-nobre-forest-deep"><span>{stageLabels[entry.fromStage]}</span><ArrowRight size={14} aria-hidden /><span>{stageLabels[entry.toStage]}</span></p>
+                    <time dateTime={entry.changedAt} className="mt-1 block text-xs text-nobre-ink-soft">{formatTimestamp(entry.changedAt)}</time>
+                  </li>
+                ))}
+              </ol>
+            )}
           </section>
 
           <section className="mt-8 border-t border-nobre-forest-deep/10 pt-6">

@@ -29,4 +29,14 @@ const opportunitySchema = z.object({
 
 export const opportunitiesResponseSchema = z.object({
   opportunities: z.array(opportunitySchema),
+  nextCursor: z.string().min(1).nullable().optional().default(null),
+});
+
+export const opportunityHistoryResponseSchema = z.object({
+  history: z.array(z.object({
+    id: z.string().min(1),
+    fromStage: z.enum(opportunityStages),
+    toStage: z.enum(opportunityStages),
+    changedAt: z.string(),
+  })),
 });

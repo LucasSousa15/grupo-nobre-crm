@@ -42,6 +42,18 @@ export interface OpportunityFilters {
   search?: string;
 }
 
+export interface OpportunityPage {
+  opportunities: Opportunity[];
+  nextCursor: string | null;
+}
+
+export interface OpportunityStageHistoryEntry {
+  id: string;
+  fromStage: OpportunityStage;
+  toStage: OpportunityStage;
+  changedAt: string;
+}
+
 export const stageLabels: Record<OpportunityStage, string> = {
   FIRST_CONTACT: "Primeiro contato",
   QUOTE_PRESENTATION: "Orçamento",

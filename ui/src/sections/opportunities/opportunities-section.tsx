@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CheckCircle2, Clock3, Flame, RefreshCw, RotateCcw, Search, TriangleAlert, UsersRound, type LucideIcon } from "lucide-react";
+import { CheckCircle2, ChevronDown, Clock3, Flame, RefreshCw, RotateCcw, Search, TriangleAlert, UsersRound, type LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { useChangeOpportunityStage } from "@/hooks/opportunities/use-change-opportunity-stage";
 import { attentionLabels, attentionStatuses, opportunityStages, stageLabels, type AttentionStatus, type Opportunity, type OpportunityStage } from "@/hooks/opportunities/types";
@@ -51,19 +51,22 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
   const [moveError, setMoveError] = useState<string | null>(null);
   const changeStage = useChangeOpportunityStage();
   const opportunitiesQuery = useOpportunities({ sellerId: seller.id });
+  const loadedOpportunities = useMemo(
+    () => opportunitiesQuery.data?.pages.flatMap((page) => page.opportunities) ?? [],
+    [opportunitiesQuery.data],
+  );
   const opportunities = useMemo(() => {
-    const allOpportunities = opportunitiesQuery.data ?? [];
     const term = search.trim().toLocaleLowerCase("pt-BR");
-    return allOpportunities.filter((opportunity) => {
+    return loadedOpportunities.filter((opportunity) => {
       const matchesAttention = attentionStatus === "ALL" || opportunity.attentionStatus === attentionStatus;
       const matchesSearch = !term || opportunity.code.toLocaleLowerCase("pt-BR").includes(term) || opportunity.company.name.toLocaleLowerCase("pt-BR").includes(term);
       return matchesAttention && matchesSearch;
     });
-  }, [opportunitiesQuery.data, attentionStatus, search]);
-  const attentionCount = useMemo(() => (opportunitiesQuery.data ?? []).reduce<Record<AttentionStatus, number>>(
+  }, [loadedOpportunities, attentionStatus, search]);
+  const attentionCount = useMemo(() => loadedOpportunities.reduce<Record<AttentionStatus, number>>(
     (count, opportunity) => ({ ...count, [opportunity.attentionStatus]: count[opportunity.attentionStatus] + 1 }),
     { NORMAL: 0, DUE_SOON: 0, OVERDUE: 0, CRITICAL: 0 },
-  ), [opportunitiesQuery.data]);
+  ), [loadedOpportunities]);
   const opportunitiesByStage = opportunityStages.reduce<Record<OpportunityStage, Opportunity[]>>(
     (groups, stage) => ({ ...groups, [stage]: opportunities.filter((opportunity) => opportunity.stage === stage) }),
     {} as Record<OpportunityStage, Opportunity[]>,
@@ -152,7 +155,7 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
           </span>
         </label>
         <p className="rounded-lg border border-nobre-forest/15 bg-nobre-paper-shade px-4 py-2.5 text-sm text-nobre-ink-soft" aria-live="polite">
-          <span className="font-semibold text-nobre-forest-deep">{opportunities.length}</span> de {opportunitiesQuery.data?.length ?? 0} oportunidades exibidas
+          <span className="font-semibold text-nobre-forest-deep">{opportunities.length}</span> exibidas de {loadedOpportunities.length} carregadas
         </p>
       </div>
 
@@ -166,6 +169,14 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
       {!opportunitiesQuery.isLoading && !opportunitiesQuery.isError && opportunities.length > 0 && <div className="mt-5 flex gap-3 overflow-x-auto pb-4">
         {opportunityStages.map((stage) => <OpportunityColumn key={stage} stage={stage} opportunities={opportunitiesByStage[stage]} onOpen={openDetails} onDragStart={setDraggedOpportunity} onDrop={handleDrop} />)}
       </div>}
+      {!opportunitiesQuery.isLoading && !opportunitiesQuery.isError && opportunitiesQuery.hasNextPage && (
+        <div className="mt-2 flex justify-center">
+          <button type="button" onClick={() => void opportunitiesQuery.fetchNextPage()} disabled={opportunitiesQuery.isFetchingNextPage} className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-nobre-forest/30 bg-nobre-paper px-4 py-2.5 text-sm font-semibold text-nobre-forest-deep transition-colors hover:border-nobre-forest hover:bg-nobre-moss disabled:cursor-wait disabled:opacity-60">
+            <ChevronDown size={17} aria-hidden />
+            {opportunitiesQuery.isFetchingNextPage ? "Carregando mais oportunidades..." : "Carregar mais oportunidades"}
+          </button>
+        </div>
+      )}
 
       {selectedOpportunity && <OpportunityDetailsDrawer key={`${selectedOpportunity.id}:${requestedStage ?? selectedOpportunity.stage}`} opportunity={selectedOpportunity} requestedStage={requestedStage} onClose={() => { setSelectedOpportunity(null); setRequestedStage(undefined); }} onMove={(stage, lossReason) => moveOpportunity(selectedOpportunity, stage, lossReason)} isMoving={changeStage.isPending} />}
     </section>
