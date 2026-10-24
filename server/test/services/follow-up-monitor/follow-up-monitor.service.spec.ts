@@ -74,7 +74,7 @@ describe("FollowUpMonitorService", () => {
       opportunity({
         nextFollowUpAt: new Date("2026-10-14T12:00:00.000Z"),
         proposalValidUntil: new Date("2026-10-14T00:00:00.000Z"),
-        customerEventAt: new Date("2026-11-03T00:00:00.000Z"),
+        customerEventAt: new Date("2026-10-20T00:00:00.000Z"),
       }),
     ]);
     const reminders = new InMemoryReminderRepository();
@@ -191,7 +191,7 @@ describe("FollowUpMonitorService", () => {
 
   it("notifies the seller once per day while the event deadline is within seven days", async () => {
     const opportunities = new InMemoryOpportunityAutomationRepository([
-      opportunity({ customerEventAt: new Date("2026-11-03T00:00:00.000Z") }),
+      opportunity({ customerEventAt: new Date("2026-10-20T00:00:00.000Z") }),
     ]);
     const reminders = new InMemoryReminderRepository();
     const notifier = notifications();
@@ -217,7 +217,7 @@ describe("FollowUpMonitorService", () => {
     ]);
     expect(notifier.sendFollowUpNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        customerEventAt: new Date("2026-11-03T00:00:00.000Z"),
+        customerEventAt: new Date("2026-10-20T00:00:00.000Z"),
       }),
     );
   });

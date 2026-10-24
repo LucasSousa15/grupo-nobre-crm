@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { resolveCorsOrigin } from "src/core/config/env";
+import { resolveCorsOrigin, resolveNonNegativeInteger } from "src/core/config/env";
 
 describe("resolveCorsOrigin", () => {
+  it("uses the configured default for an omitted non-negative integer", () => {
+    expect(resolveNonNegativeInteger(undefined, "EVENT_DELIVERY_LEAD_DAYS", 2)).toBe(2);
+  });
   it("accepts one valid origin and normalizes a trailing slash", () => {
     expect(resolveCorsOrigin("http://localhost:3001/")).toBe(
       "http://localhost:3001",

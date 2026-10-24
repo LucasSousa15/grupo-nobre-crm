@@ -40,7 +40,7 @@ export const env = {
     return resolveCorsOrigin(process.env.CORS_ORIGIN);
   },
   get eventDeliveryLeadDays(): number {
-    return resolveNonNegativeInteger(process.env.EVENT_DELIVERY_LEAD_DAYS, 'EVENT_DELIVERY_LEAD_DAYS', 14);
+    return resolveNonNegativeInteger(process.env.EVENT_DELIVERY_LEAD_DAYS, 'EVENT_DELIVERY_LEAD_DAYS', 2);
   },
   get rateLimitWindowSeconds(): number {
     return resolveNonNegativeInteger(process.env.RATE_LIMIT_WINDOW_SECONDS, 'RATE_LIMIT_WINDOW_SECONDS', 60);

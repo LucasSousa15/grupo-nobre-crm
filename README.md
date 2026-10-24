@@ -38,7 +38,7 @@ O banco E2E é independente e usa a porta `5433`. Aguarde o container `database-
 - O funil e seus pré-requisitos são validados no domínio do backend; a interface apenas recebe opções de transição e seus requisitos.
 - O histórico de etapas é append-only e gravado na mesma transação da mudança de estágio.
 - Datas de evento e validade de proposta são datas civis, exibidas sem conversão de fuso.
-- `EVENT_DELIVERY_LEAD_DAYS` define o prazo de entrega assumido (14 dias por padrão). O cron alerta nos sete dias antes do corte e perde automaticamente a oportunidade no dia seguinte ao último dia viável. Esse valor deve ser homologado com Comercial e Operações antes de produção.
+- `EVENT_DELIVERY_LEAD_DAYS` define o prazo de entrega assumido (2 dias por padrão). O cron alerta nos sete dias antes do corte e perde automaticamente a oportunidade no dia seguinte ao último dia viável. Esse valor deve ser homologado com Comercial e Operações antes de produção.
 - CORS usa origem única configurada em ambiente. A API também possui correlação de requisição, logs seguros, métricas agregadas em `/metrics`, healthcheck em `/health`, cabeçalhos básicos e rate limit local configurável. TLS, gestão de segredos e menor privilégio no banco são responsabilidades da implantação.
 
 Mais detalhes técnicos estão em [server/README.md](./server/README.md) e [ui/README.md](./ui/README.md).
