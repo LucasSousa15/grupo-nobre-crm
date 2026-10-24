@@ -94,7 +94,7 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
     if (!opportunity || opportunity.stage === stage) return;
     const transition = opportunity.transitionOptions.find((option) => option.stage === stage);
     if (!transition || !transition.enabled) {
-      setMoveError(transition?.requirements.join(" ") || "Essa mudanÃ§a de etapa nÃ£o Ã© permitida no funil.");
+      setMoveError(transition?.requirements.join(" ") || "Essa mudança de etapa não é permitida no funil.");
       return;
     }
     if (stage === "LOST") {

@@ -1,5 +1,5 @@
-/** Formats calendar dates without applying the browser timezone. */
-export function formatCivilDate(value: string | null, fallback = 'NÃ£o informado'): string {
+/** Formata data de calendário sem aplicar o fuso do navegador. */
+export function formatCivilDate(value: string | null, fallback = 'Não informado'): string {
   if (!value) return fallback;
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
   if (!match) return fallback;
