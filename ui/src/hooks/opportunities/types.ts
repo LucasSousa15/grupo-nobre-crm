@@ -23,7 +23,13 @@ export interface Opportunity {
   proposalValidUntil: string | null;
   customerEventAt: string;
   lossReason: string | null;
-  company: { id: string; name: string };
+  company: {
+    id: string;
+    name: string;
+    contactName: string;
+    contactEmail: string | null;
+    contactPhone: string | null;
+  };
   seller: { id: string; name: string };
   items: Array<{ id: string; productId: string; productName: string; quantity: number }>;
   createdAt: string;
