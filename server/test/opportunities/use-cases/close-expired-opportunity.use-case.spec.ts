@@ -23,12 +23,13 @@ const opportunity = (
 describe("CloseExpiredOpportunityUseCase", () => {
   it("moves an open opportunity to lost on the day after its delivery cutoff and records the reason", async () => {
     const repository = new InMemoryOpportunityRepository([opportunity()]);
-    const useCase = new CloseExpiredOpportunityUseCase(repository, 3);
+    const useCase = new CloseExpiredOpportunityUseCase(repository);
 
     expect(
       await useCase.execute(
         "opportunity-id",
         new Date("2026-10-13T08:00:00.000Z"),
+        3,
       ),
     ).toBe(true);
     expect(repository.opportunities[0].stage).toBe(OpportunityStage.LOST);
@@ -46,18 +47,20 @@ describe("CloseExpiredOpportunityUseCase", () => {
       opportunity({ id: "event-today" }),
       opportunity({ id: "already-lost", stage: OpportunityStage.LOST }),
     ]);
-    const useCase = new CloseExpiredOpportunityUseCase(repository, 3);
+    const useCase = new CloseExpiredOpportunityUseCase(repository);
 
     expect(
       await useCase.execute(
         "event-today",
         new Date("2026-10-12T23:59:59.000Z"),
+        3,
       ),
     ).toBe(false);
     expect(
       await useCase.execute(
         "already-lost",
         new Date("2026-10-13T08:00:00.000Z"),
+        3,
       ),
     ).toBe(false);
     expect(repository.histories).toHaveLength(0);

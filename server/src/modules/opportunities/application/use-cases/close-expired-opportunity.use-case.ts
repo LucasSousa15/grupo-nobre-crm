@@ -13,12 +13,13 @@ export const DELIVERY_DEADLINE_ELAPSED_LOSS_REASON =
 
 @Injectable()
 export class CloseExpiredOpportunityUseCase {
-  constructor(
-    private readonly opportunities: OpportunityRepository,
-    private readonly deliveryLeadDays = env.eventDeliveryLeadDays,
-  ) {}
+  constructor(private readonly opportunities: OpportunityRepository) {}
 
-  async execute(opportunityId: string, now = new Date()): Promise<boolean> {
+  async execute(
+    opportunityId: string,
+    now = new Date(),
+    deliveryLeadDays = env.eventDeliveryLeadDays,
+  ): Promise<boolean> {
     const snapshot = await this.opportunities.findById(opportunityId);
     if (
       !snapshot ||
@@ -31,7 +32,7 @@ export class CloseExpiredOpportunityUseCase {
       !OpportunityEventDeadlinePolicy.hasElapsed(
         { customerEventAt: snapshot.customerEventAt },
         now,
-        this.deliveryLeadDays,
+        deliveryLeadDays,
       )
     ) {
       return false;
