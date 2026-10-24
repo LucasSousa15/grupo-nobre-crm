@@ -34,7 +34,7 @@ describe('Opportunities API (e2e)', () => {
 
   async function createReferences() {
     const [company, seller, product] = await Promise.all([
-      prisma.company.create({ data: { companyName: 'Empresa E2E', contactName: 'Mariana E2E' } }),
+      prisma.company.create({ data: { companyName: 'Empresa E2E', contactName: 'Mariana E2E', contactEmail: 'mariana.e2e@nobrebrindes.local', contactPhone: '11999990000' } }),
       prisma.seller.create({ data: { name: 'Ana E2E', email: 'ana.e2e@nobrebrindes.local' } }),
       prisma.product.create({ data: { name: 'Caneca E2E' } }),
     ]);
@@ -56,7 +56,11 @@ describe('Opportunities API (e2e)', () => {
       })
       .expect(201);
 
-    expect(response.body.opportunity).toMatchObject({ code: 'OPP-E2E-001', stage: 'FIRST_CONTACT' });
+    expect(response.body.opportunity).toMatchObject({
+      code: 'OPP-E2E-001',
+      stage: 'FIRST_CONTACT',
+      company: { contactName: 'Mariana E2E', contactEmail: 'mariana.e2e@nobrebrindes.local', contactPhone: '11999990000' },
+    });
     const persisted = await prisma.opportunity.findUnique({ where: { id: response.body.opportunity.id }, include: { items: true } });
     expect(persisted?.items).toHaveLength(1);
     expect(persisted?.items[0]).toMatchObject({ productId: product.id, quantity: 300 });

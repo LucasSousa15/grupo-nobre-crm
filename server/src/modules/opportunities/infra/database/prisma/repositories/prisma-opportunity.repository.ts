@@ -13,7 +13,7 @@ import { OpportunityAttentionService } from 'src/modules/opportunities/domain/se
 import { ReminderType } from 'src/modules/reminders/domain/types/reminder';
 
 const opportunityDetailsInclude = {
-  company: { select: { companyName: true } },
+  company: { select: { companyName: true, contactName: true, contactEmail: true, contactPhone: true } },
   seller: { select: { name: true } },
   items: { include: { product: { select: { name: true } } } },
   reminders: { select: { type: true, createdAt: true } },
@@ -180,6 +180,9 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
       code: opportunity.code,
       companyId: opportunity.companyId,
       companyName: opportunity.company.companyName,
+      companyContactName: opportunity.company.contactName,
+      companyContactEmail: opportunity.company.contactEmail,
+      companyContactPhone: opportunity.company.contactPhone,
       sellerId: opportunity.sellerId,
       sellerName: opportunity.seller.name,
       stage: opportunity.stage as OpportunityStage,

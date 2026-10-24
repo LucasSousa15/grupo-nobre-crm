@@ -10,6 +10,8 @@ interface SeedOpportunity {
   code: string;
   company: string;
   contact: string;
+  contactEmail: string;
+  contactPhone: string;
   seller: string;
   product: string;
   quantity: number;
@@ -22,13 +24,13 @@ interface SeedOpportunity {
 }
 
 const opportunities: SeedOpportunity[] = [
-  { code: 'OPP-2001', company: 'Tech Alpha Ltda', contact: 'Contato Tech Alpha', seller: 'Ana', product: 'Caneca personalizada', quantity: 300, estimatedValue: 4500, lastContactAt: '2026-10-14', customerEventAt: '2026-11-30', stage: OpportunityStage.FIRST_CONTACT },
-  { code: 'OPP-2002', company: 'Construtora Horizonte', contact: 'Contato Construtora Horizonte', seller: 'Bruno', product: 'Kit escritório', quantity: 120, estimatedValue: 9800, lastContactAt: '2026-10-06', proposalValidUntil: '2026-10-13', customerEventAt: '2026-10-25', stage: OpportunityStage.QUOTE_PRESENTATION },
-  { code: 'OPP-2003', company: 'Clínica Vida', contact: 'Contato Clínica Vida', seller: 'Ana', product: 'Squeeze personalizado', quantity: 500, estimatedValue: 7200, lastContactAt: '2026-10-13', proposalValidUntil: '2026-10-20', customerEventAt: '2026-10-18', stage: OpportunityStage.FOLLOW_UP },
-  { code: 'OPP-2004', company: 'Agência Pulso', contact: 'Contato Agência Pulso', seller: 'Carla', product: 'Camiseta estampada', quantity: 80, estimatedValue: 3900, lastContactAt: '2026-10-02', proposalValidUntil: '2026-10-10', customerEventAt: '2026-11-05', stage: OpportunityStage.FOLLOW_UP },
-  { code: 'OPP-2005', company: 'Banco Norte', contact: 'Contato Banco Norte', seller: 'Bruno', product: 'Agenda executiva', quantity: 1000, estimatedValue: 38000, lastContactAt: '2026-10-15', proposalValidUntil: '2026-10-22', customerEventAt: '2026-12-12', stage: OpportunityStage.FORECAST },
-  { code: 'OPP-2006', company: 'Escola Saber', contact: 'Contato Escola Saber', seller: 'Carla', product: 'Mochila infantil', quantity: 250, estimatedValue: 11500, lastContactAt: '2026-10-09', proposalValidUntil: '2026-10-16', customerEventAt: '2026-10-17', stage: OpportunityStage.CLOSED },
-  { code: 'OPP-2007', company: 'Padaria do Bairro', contact: 'Contato Padaria do Bairro', seller: 'Ana', product: 'Caneta promocional', quantity: 50, estimatedValue: 350, lastContactAt: '2026-10-01', proposalValidUntil: '2026-10-08', customerEventAt: '2026-10-20', stage: OpportunityStage.LOST, lossReason: 'Cliente optou por outro fornecedor.' },
+  { code: 'OPP-2001', company: 'Tech Alpha Ltda', contact: 'Mariana Alves', contactEmail: 'mariana@techalpha.local', contactPhone: '11987650001', seller: 'Ana', product: 'Caneca personalizada', quantity: 300, estimatedValue: 4500, lastContactAt: '2026-10-14', customerEventAt: '2026-11-30', stage: OpportunityStage.FIRST_CONTACT },
+  { code: 'OPP-2002', company: 'Construtora Horizonte', contact: 'Ricardo Nunes', contactEmail: 'ricardo@horizonte.local', contactPhone: '11987650002', seller: 'Bruno', product: 'Kit escritório', quantity: 120, estimatedValue: 9800, lastContactAt: '2026-10-06', proposalValidUntil: '2026-10-13', customerEventAt: '2026-10-25', stage: OpportunityStage.QUOTE_PRESENTATION },
+  { code: 'OPP-2003', company: 'Clínica Vida', contact: 'Fernanda Lima', contactEmail: 'fernanda@clinicavida.local', contactPhone: '11987650003', seller: 'Ana', product: 'Squeeze personalizado', quantity: 500, estimatedValue: 7200, lastContactAt: '2026-10-13', proposalValidUntil: '2026-10-20', customerEventAt: '2026-10-18', stage: OpportunityStage.FOLLOW_UP },
+  { code: 'OPP-2004', company: 'Agência Pulso', contact: 'Gabriel Souza', contactEmail: 'gabriel@agenciapulso.local', contactPhone: '11987650004', seller: 'Carla', product: 'Camiseta estampada', quantity: 80, estimatedValue: 3900, lastContactAt: '2026-10-02', proposalValidUntil: '2026-10-10', customerEventAt: '2026-11-05', stage: OpportunityStage.FOLLOW_UP },
+  { code: 'OPP-2005', company: 'Banco Norte', contact: 'Paula Martins', contactEmail: 'paula@banconorte.local', contactPhone: '11987650005', seller: 'Bruno', product: 'Agenda executiva', quantity: 1000, estimatedValue: 38000, lastContactAt: '2026-10-15', proposalValidUntil: '2026-10-22', customerEventAt: '2026-12-12', stage: OpportunityStage.FORECAST },
+  { code: 'OPP-2006', company: 'Escola Saber', contact: 'Larissa Costa', contactEmail: 'larissa@escolasaber.local', contactPhone: '11987650006', seller: 'Carla', product: 'Mochila infantil', quantity: 250, estimatedValue: 11500, lastContactAt: '2026-10-09', proposalValidUntil: '2026-10-16', customerEventAt: '2026-10-17', stage: OpportunityStage.CLOSED },
+  { code: 'OPP-2007', company: 'Padaria do Bairro', contact: 'João Santos', contactEmail: 'joao@padariadobairro.local', contactPhone: '11987650007', seller: 'Ana', product: 'Caneta promocional', quantity: 50, estimatedValue: 350, lastContactAt: '2026-10-01', proposalValidUntil: '2026-10-08', customerEventAt: '2026-10-20', stage: OpportunityStage.LOST, lossReason: 'Cliente optou por outro fornecedor.' },
 ];
 
 async function main(): Promise<void> {
@@ -40,8 +42,8 @@ async function main(): Promise<void> {
     });
     const company = await prisma.company.upsert({
       where: { id: `seed-company-${data.code}` },
-      update: { companyName: data.company, contactName: data.contact },
-      create: { id: `seed-company-${data.code}`, companyName: data.company, contactName: data.contact },
+      update: { companyName: data.company, contactName: data.contact, contactEmail: data.contactEmail, contactPhone: data.contactPhone },
+      create: { id: `seed-company-${data.code}`, companyName: data.company, contactName: data.contact, contactEmail: data.contactEmail, contactPhone: data.contactPhone },
     });
     const product = await prisma.product.upsert({
       where: { id: `seed-product-${data.code}` },

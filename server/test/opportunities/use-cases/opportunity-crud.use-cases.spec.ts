@@ -14,7 +14,7 @@ import { OpportunityAttentionStatus } from 'src/modules/opportunities/domain/ser
 import { InMemoryOpportunityManagementRepository } from '../repositories/in-memory-opportunity-management.repository';
 
 const opportunity = (overrides: Partial<OpportunityDetails> = {}): OpportunityDetails => ({
-  id: 'opportunity-id', code: 'OPP-2008', companyId: 'company-id', companyName: 'Tech Alpha', sellerId: 'seller-id', sellerName: 'Ana',
+  id: 'opportunity-id', code: 'OPP-2008', companyId: 'company-id', companyName: 'Tech Alpha', companyContactName: 'Mariana', companyContactEmail: 'mariana@techalpha.local', companyContactPhone: '11999990000', sellerId: 'seller-id', sellerName: 'Ana',
   stage: OpportunityStage.FIRST_CONTACT, estimatedValue: 4500, lastContactAt: null, nextFollowUpAt: null, proposalValidUntil: null,
   customerEventAt: new Date('2026-11-30T00:00:00.000Z'), lossReason: null, items: [{ id: 'item-id', productId: 'product-id', productName: 'Caneca', quantity: 300 }],
   attentionStatus: OpportunityAttentionStatus.NORMAL,

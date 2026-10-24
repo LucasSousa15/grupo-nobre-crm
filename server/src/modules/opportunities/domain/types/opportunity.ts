@@ -16,6 +16,9 @@ export interface OpportunityDetails {
   code: string;
   companyId: string;
   companyName: string;
+  companyContactName: string;
+  companyContactEmail: string | null;
+  companyContactPhone: string | null;
   sellerId: string;
   sellerName: string;
   stage: OpportunityStage;
