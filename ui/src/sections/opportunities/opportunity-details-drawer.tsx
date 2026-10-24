@@ -33,7 +33,7 @@ export function OpportunityDetailsDrawer({
             <p className="text-xs font-semibold tracking-wide text-nobre-ink-soft">{opportunity.code}</p>
             <h2 id="opportunity-details-title" className="mt-1 text-xl font-semibold text-nobre-forest-deep">{opportunity.company.name}</h2>
           </div>
-          <button type="button" onClick={onClose} className="rounded-lg border border-nobre-forest/25 px-3 py-2 text-sm font-medium text-nobre-forest-deep transition-colors hover:border-nobre-forest hover:bg-nobre-moss">
+          <button type="button" onClick={onClose} className="cursor-pointer rounded-lg border border-nobre-forest/25 px-3 py-2 text-sm font-medium text-nobre-forest-deep transition-colors hover:border-nobre-forest hover:bg-nobre-moss">
             Fechar
           </button>
         </header>
@@ -56,7 +56,7 @@ export function OpportunityDetailsDrawer({
           <section className="mt-8 border-t border-nobre-forest-deep/10 pt-6">
             <label className="grid gap-1 text-sm font-medium text-nobre-forest-deep">
               Mover oportunidade para
-              <select value={stage} onChange={(event) => setStage(event.target.value as OpportunityStage)} className="rounded-lg border border-nobre-forest/30 bg-nobre-paper px-3 py-2 outline-none focus:border-nobre-forest focus:ring-2 focus:ring-nobre-sprout/60">
+              <select value={stage} onChange={(event) => setStage(event.target.value as OpportunityStage)} className="cursor-pointer rounded-lg border border-nobre-forest/30 bg-nobre-paper px-3 py-2 outline-none focus:border-nobre-forest focus:ring-2 focus:ring-nobre-sprout/60">
                 {opportunityStages.map((value) => <option key={value} value={value}>{stageLabels[value]}</option>)}
               </select>
             </label>
@@ -71,7 +71,7 @@ export function OpportunityDetailsDrawer({
         </div>
 
         <footer className="border-t border-nobre-forest-deep/10 px-6 py-4">
-          <button type="button" disabled={!canMove || isMoving} onClick={() => onMove(stage, lossReason)} className="w-full rounded-lg bg-nobre-forest-deep px-4 py-3 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 hover:bg-nobre-forest">
+          <button type="button" disabled={!canMove || isMoving} onClick={() => onMove(stage, lossReason)} className="w-full cursor-pointer rounded-lg bg-nobre-forest-deep px-4 py-3 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 hover:bg-nobre-forest">
             {isMoving ? "Movendo oportunidade..." : "Confirmar movimentação"}
           </button>
         </footer>

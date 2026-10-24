@@ -28,7 +28,7 @@ const stageStyles: Record<OpportunityStage, { column: string; count: string }> =
 function OpportunityColumn({ stage, opportunities, onOpen, onDragStart, onDrop }: { stage: OpportunityStage; opportunities: Opportunity[]; onOpen: (opportunity: Opportunity) => void; onDragStart: (opportunity: Opportunity) => void; onDrop: (stage: OpportunityStage) => void }) {
   const style = stageStyles[stage];
   return (
-    <section onDragOver={(event) => event.preventDefault()} onDrop={() => onDrop(stage)} className={`min-w-72 flex-1 rounded-2xl border-t-4 bg-nobre-paper-shade p-3 shadow-sm ${style.column}`} aria-labelledby={`stage-${stage}`}>
+    <section onDragOver={(event) => event.preventDefault()} onDrop={() => onDrop(stage)} className={`min-w-[13.5rem] flex-1 rounded-2xl border-t-4 bg-nobre-paper-shade p-3 shadow-sm ${style.column}`} aria-labelledby={`stage-${stage}`}>
       <div className="mb-3 flex items-center justify-between px-1">
         <h2 id={`stage-${stage}`} className="text-sm font-semibold text-nobre-forest-deep">{stageLabels[stage]}</h2>
         <span className={`rounded-full px-2 py-1 text-xs font-semibold ${style.count}`}>{opportunities.length}</span>
@@ -106,12 +106,12 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
         description="Pesquise, priorize e mova as oportunidades da sua carteira pelo funil comercial."
         action={
           <div className="flex flex-wrap items-end gap-3">
-            <button type="button" onClick={onChangeSeller} className="rounded-lg border border-nobre-forest/30 bg-nobre-paper px-3 py-2 text-sm font-medium text-nobre-forest-deep hover:border-nobre-forest hover:text-nobre-forest">
+            <button type="button" onClick={onChangeSeller} className="cursor-pointer rounded-lg border border-nobre-forest/30 bg-nobre-paper px-3 py-2 text-sm font-medium text-nobre-forest-deep hover:border-nobre-forest hover:text-nobre-forest">
               Trocar vendedor
             </button>
             <label className="grid gap-1 text-sm font-medium text-nobre-forest-deep">
               Atenção
-              <select value={attentionStatus} onChange={(event) => setAttentionStatus(event.target.value as AttentionStatus | "ALL")} className="min-w-40 rounded-lg border border-nobre-forest/30 bg-nobre-paper px-3 py-2 text-sm outline-none focus:border-nobre-forest focus:ring-2 focus:ring-nobre-sprout/60">
+              <select value={attentionStatus} onChange={(event) => setAttentionStatus(event.target.value as AttentionStatus | "ALL")} className="min-w-40 cursor-pointer rounded-lg border border-nobre-forest/30 bg-nobre-paper px-3 py-2 text-sm outline-none focus:border-nobre-forest focus:ring-2 focus:ring-nobre-sprout/60">
                 <option value="ALL">Todas</option>
                 {attentionStatuses.map((status) => <option key={status} value={status}>{attentionLabels[status]}</option>)}
               </select>
@@ -126,13 +126,13 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
             <h2 id="attention-overview-title" className="font-semibold text-nobre-forest-deep">Prioridades da carteira</h2>
             <p className="mt-1 text-sm text-nobre-ink-soft">Clique em um status para filtrar o Kanban.</p>
           </div>
-          {attentionStatus !== "ALL" && <button type="button" onClick={() => setAttentionStatus("ALL")} className="rounded-md px-2 py-1 text-sm font-semibold text-nobre-forest underline-offset-4 transition-colors hover:bg-nobre-moss hover:underline">Ver todas</button>}
+          {attentionStatus !== "ALL" && <button type="button" onClick={() => setAttentionStatus("ALL")} className="cursor-pointer rounded-md px-2 py-1 text-sm font-semibold text-nobre-forest underline-offset-4 transition-colors hover:bg-nobre-moss hover:underline">Ver todas</button>}
         </div>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {attentionStatuses.map((status) => {
             const selected = attentionStatus === status;
             const card = attentionCards[status];
-            return <button key={status} type="button" aria-pressed={selected} disabled={opportunitiesQuery.isLoading} onClick={() => setAttentionStatus(selected ? "ALL" : status)} className={`rounded-2xl border p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-nobre-sprout disabled:cursor-wait disabled:opacity-60 ${card.className} ${selected ? "ring-2 ring-nobre-forest ring-offset-2" : ""}`}>
+            return <button key={status} type="button" aria-pressed={selected} disabled={opportunitiesQuery.isLoading} onClick={() => setAttentionStatus(selected ? "ALL" : status)} className={`cursor-pointer rounded-2xl border p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-nobre-sprout disabled:cursor-wait disabled:opacity-60 ${card.className} ${selected ? "ring-2 ring-nobre-forest ring-offset-2" : ""}`}>
               <span className="text-xs font-semibold uppercase tracking-[0.12em]">{attentionLabels[status]}</span>
               <span className="mt-3 block text-3xl font-semibold tracking-tight">{attentionCount[status]}</span>
               <span className="mt-1 block text-sm opacity-80">{card.description}</span>
@@ -141,19 +141,24 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
         </div>
       </section>
 
-      <label className="mt-6 block max-w-xl text-sm font-medium text-nobre-forest-deep">
-        Buscar oportunidade
-        <input value={search} onChange={(event) => setSearch(event.target.value)} type="search" placeholder="Código ou empresa" className="mt-1 w-full rounded-lg border border-nobre-forest/30 bg-nobre-paper px-3 py-2.5 text-sm outline-none placeholder:text-nobre-ink-soft focus:border-nobre-forest focus:ring-2 focus:ring-nobre-sprout/60" />
-      </label>
+      <div className="mt-6 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <label className="block text-sm font-medium text-nobre-forest-deep">
+          Buscar oportunidade
+          <input value={search} onChange={(event) => setSearch(event.target.value)} type="search" placeholder="Código ou empresa" className="mt-1 w-full rounded-lg border border-nobre-forest/30 bg-nobre-paper px-3 py-2.5 text-sm outline-none placeholder:text-nobre-ink-soft focus:border-nobre-forest focus:ring-2 focus:ring-nobre-sprout/60" />
+        </label>
+        <p className="rounded-lg border border-nobre-forest/15 bg-nobre-paper-shade px-4 py-2.5 text-sm text-nobre-ink-soft" aria-live="polite">
+          <span className="font-semibold text-nobre-forest-deep">{opportunities.length}</span> de {opportunitiesQuery.data?.length ?? 0} oportunidades exibidas
+        </p>
+      </div>
 
       {moveError && <div className="mt-6 rounded-xl border border-nobre-crown/70 bg-nobre-crown/25 p-4 text-sm text-nobre-pitch" role="alert">{moveError}</div>}
       {opportunitiesQuery.isLoading && <p className="mt-8 rounded-xl border border-nobre-forest/20 bg-nobre-paper p-5 text-sm text-nobre-ink-soft" role="status">Carregando oportunidades...</p>}
       {opportunitiesQuery.isError && <div className="mt-8 rounded-xl border border-nobre-crown/70 bg-nobre-crown/25 p-5 text-sm text-nobre-pitch" role="alert">
         <p className="font-semibold">Não foi possível carregar as oportunidades.</p>
-        <button type="button" onClick={() => void opportunitiesQuery.refetch()} className="mt-3 rounded-md bg-nobre-forest-deep px-3 py-2 text-sm font-medium text-white hover:bg-nobre-forest">Tentar novamente</button>
+        <button type="button" onClick={() => void opportunitiesQuery.refetch()} className="mt-3 cursor-pointer rounded-md bg-nobre-forest-deep px-3 py-2 text-sm font-medium text-white hover:bg-nobre-forest">Tentar novamente</button>
       </div>}
       {!opportunitiesQuery.isLoading && !opportunitiesQuery.isError && opportunities.length === 0 && <p className="mt-8 rounded-xl border border-dashed border-nobre-forest/25 bg-nobre-paper-shade p-8 text-center text-sm text-nobre-ink-soft">Nenhuma oportunidade corresponde aos filtros desta carteira.</p>}
-      {!opportunitiesQuery.isLoading && !opportunitiesQuery.isError && opportunities.length > 0 && <div className="mt-8 flex gap-4 overflow-x-auto pb-4">
+      {!opportunitiesQuery.isLoading && !opportunitiesQuery.isError && opportunities.length > 0 && <div className="mt-5 flex gap-3 overflow-x-auto pb-4">
         {opportunityStages.map((stage) => <OpportunityColumn key={stage} stage={stage} opportunities={opportunitiesByStage[stage]} onOpen={openDetails} onDragStart={setDraggedOpportunity} onDrop={handleDrop} />)}
       </div>}
 

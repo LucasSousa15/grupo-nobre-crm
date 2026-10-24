@@ -35,7 +35,7 @@ export function OpportunityCard({ opportunity, onOpen, onDragStart }: { opportun
           Venda perdida: {opportunity.lossReason}
         </p>
       )}
-      <button type="button" onClick={onOpen} className="mt-4 w-full rounded-lg border border-nobre-forest/25 px-3 py-2 text-sm font-medium text-nobre-forest-deep transition-colors hover:border-nobre-forest hover:bg-nobre-moss">
+      <button type="button" onClick={onOpen} className="mt-4 w-full cursor-pointer rounded-lg border border-nobre-forest/25 px-3 py-2 text-sm font-medium text-nobre-forest-deep transition-colors hover:border-nobre-forest hover:bg-nobre-moss">
         Consultar oportunidade
       </button>
     </article>

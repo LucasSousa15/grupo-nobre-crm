@@ -19,7 +19,7 @@ function SellerSelection({ sellers, onSelect }: { sellers: Seller[]; onSelect: (
             key={seller.id}
             type="button"
             onClick={() => onSelect(seller)}
-            className="group rounded-2xl border border-nobre-forest-deep/15 bg-nobre-paper p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-nobre-forest hover:bg-nobre-moss hover:shadow-md focus:outline-none focus:ring-2 focus:ring-nobre-sprout"
+            className="group cursor-pointer rounded-2xl border border-nobre-forest-deep/15 bg-nobre-paper p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-nobre-forest hover:bg-nobre-moss hover:shadow-md focus:outline-none focus:ring-2 focus:ring-nobre-sprout"
           >
             <span className="grid size-11 place-items-center rounded-xl bg-nobre-forest-deep text-base font-semibold text-nobre-crown">
               {seller.name.slice(0, 1).toUpperCase()}
@@ -57,7 +57,7 @@ export function SellerWorkspaceSection() {
     return (
       <div className="rounded-xl border border-nobre-crown/70 bg-nobre-crown/25 p-5 text-sm text-nobre-pitch" role="alert">
         <p className="font-semibold">Não foi possível carregar os vendedores.</p>
-        <button type="button" onClick={() => void sellersQuery.refetch()} className="mt-3 rounded-md bg-nobre-forest-deep px-3 py-2 text-sm font-medium text-white hover:bg-nobre-forest">
+        <button type="button" onClick={() => void sellersQuery.refetch()} className="mt-3 cursor-pointer rounded-md bg-nobre-forest-deep px-3 py-2 text-sm font-medium text-white hover:bg-nobre-forest">
           Tentar novamente
         </button>
       </div>
