@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { useChangeOpportunityStage } from "@/hooks/opportunities/use-change-opportunity-stage";
 import { attentionLabels, attentionStatuses, opportunityStages, stageLabels, type AttentionStatus, type Opportunity, type OpportunityStage } from "@/hooks/opportunities/types";
@@ -8,6 +8,13 @@ import { useOpportunities } from "@/hooks/opportunities/use-opportunities";
 import type { Seller } from "@/hooks/sellers/types";
 import { OpportunityCard } from "./opportunity-card";
 import { OpportunityDetailsDrawer } from "./opportunity-details-drawer";
+
+const attentionCards: Record<AttentionStatus, { description: string; className: string }> = {
+  NORMAL: { description: "Carteira sob controle", className: "border-nobre-forest-deep/15 bg-nobre-paper text-nobre-forest-deep hover:border-nobre-forest" },
+  DUE_SOON: { description: "Priorize o próximo contato", className: "border-nobre-forest/20 bg-nobre-moss text-nobre-forest-deep hover:border-nobre-forest" },
+  OVERDUE: { description: "Retorno precisa de ação", className: "border-orange-200 bg-orange-50 text-orange-950 hover:border-orange-400" },
+  CRITICAL: { description: "Risco alto de perda", className: "border-red-200 bg-red-50 text-red-950 hover:border-red-400" },
+};
 
 function OpportunityColumn({ stage, opportunities, onOpen, onDragStart, onDrop }: { stage: OpportunityStage; opportunities: Opportunity[]; onOpen: (opportunity: Opportunity) => void; onDragStart: (opportunity: Opportunity) => void; onDrop: (stage: OpportunityStage) => void }) {
   return (
@@ -32,12 +39,20 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
   const [requestedStage, setRequestedStage] = useState<OpportunityStage | undefined>();
   const [moveError, setMoveError] = useState<string | null>(null);
   const changeStage = useChangeOpportunityStage();
-  const opportunitiesQuery = useOpportunities({
-    sellerId: seller.id,
-    ...(attentionStatus === "ALL" ? {} : { attentionStatus }),
-    ...(search.trim() ? { search: search.trim() } : {}),
-  });
-  const opportunities = opportunitiesQuery.data ?? [];
+  const opportunitiesQuery = useOpportunities({ sellerId: seller.id });
+  const opportunities = useMemo(() => {
+    const allOpportunities = opportunitiesQuery.data ?? [];
+    const term = search.trim().toLocaleLowerCase("pt-BR");
+    return allOpportunities.filter((opportunity) => {
+      const matchesAttention = attentionStatus === "ALL" || opportunity.attentionStatus === attentionStatus;
+      const matchesSearch = !term || opportunity.code.toLocaleLowerCase("pt-BR").includes(term) || opportunity.company.name.toLocaleLowerCase("pt-BR").includes(term);
+      return matchesAttention && matchesSearch;
+    });
+  }, [opportunitiesQuery.data, attentionStatus, search]);
+  const attentionCount = useMemo(() => (opportunitiesQuery.data ?? []).reduce<Record<AttentionStatus, number>>(
+    (count, opportunity) => ({ ...count, [opportunity.attentionStatus]: count[opportunity.attentionStatus] + 1 }),
+    { NORMAL: 0, DUE_SOON: 0, OVERDUE: 0, CRITICAL: 0 },
+  ), [opportunitiesQuery.data]);
   const opportunitiesByStage = opportunityStages.reduce<Record<OpportunityStage, Opportunity[]>>(
     (groups, stage) => ({ ...groups, [stage]: opportunities.filter((opportunity) => opportunity.stage === stage) }),
     {} as Record<OpportunityStage, Opportunity[]>,
@@ -94,6 +109,27 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
           </div>
         }
       />
+
+      <section className="mt-8" aria-labelledby="attention-overview-title">
+        <div className="mb-3 flex items-center justify-between gap-4">
+          <div>
+            <h2 id="attention-overview-title" className="font-semibold text-nobre-forest-deep">Prioridades da carteira</h2>
+            <p className="mt-1 text-sm text-nobre-ink-soft">Clique em um status para filtrar o Kanban.</p>
+          </div>
+          {attentionStatus !== "ALL" && <button type="button" onClick={() => setAttentionStatus("ALL")} className="text-sm font-semibold text-nobre-forest underline-offset-4 hover:underline">Ver todas</button>}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {attentionStatuses.map((status) => {
+            const selected = attentionStatus === status;
+            const card = attentionCards[status];
+            return <button key={status} type="button" aria-pressed={selected} disabled={opportunitiesQuery.isLoading} onClick={() => setAttentionStatus(selected ? "ALL" : status)} className={`rounded-2xl border p-4 text-left shadow-sm transition focus:outline-none focus:ring-2 focus:ring-nobre-sprout disabled:cursor-wait disabled:opacity-60 ${card.className} ${selected ? "ring-2 ring-nobre-forest ring-offset-2" : ""}`}>
+              <span className="text-xs font-semibold uppercase tracking-[0.12em]">{attentionLabels[status]}</span>
+              <span className="mt-3 block text-3xl font-semibold tracking-tight">{attentionCount[status]}</span>
+              <span className="mt-1 block text-sm opacity-80">{card.description}</span>
+            </button>;
+          })}
+        </div>
+      </section>
 
       <label className="mt-6 block max-w-xl text-sm font-medium text-nobre-forest-deep">
         Buscar oportunidade
