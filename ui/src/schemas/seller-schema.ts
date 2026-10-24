@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const sellerSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().min(1),
   name: z.string(),
   email: z.string().email(),
   phone: z.string().nullable(),

@@ -2,7 +2,9 @@ import { z } from "zod";
 import { attentionStatuses, opportunityStages } from "@/hooks/opportunities/types";
 
 const opportunitySchema = z.object({
-  id: z.string().uuid(),
+  // Identificadores são opacos para a interface: o seed utiliza chaves estáveis
+  // textuais em relações internas e a UI não deve assumir UUIDs como contrato.
+  id: z.string().min(1),
   code: z.string(),
   stage: z.enum(opportunityStages),
   attentionStatus: z.enum(attentionStatuses),
@@ -12,9 +14,9 @@ const opportunitySchema = z.object({
   proposalValidUntil: z.string().nullable(),
   customerEventAt: z.string(),
   lossReason: z.string().nullable(),
-  company: z.object({ id: z.string().uuid(), name: z.string() }),
-  seller: z.object({ id: z.string().uuid(), name: z.string() }),
-  items: z.array(z.object({ id: z.string().uuid(), productId: z.string().uuid(), productName: z.string(), quantity: z.number().int().positive() })),
+  company: z.object({ id: z.string().min(1), name: z.string() }),
+  seller: z.object({ id: z.string().min(1), name: z.string() }),
+  items: z.array(z.object({ id: z.string().min(1), productId: z.string().min(1), productName: z.string(), quantity: z.number().int().positive() })),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
