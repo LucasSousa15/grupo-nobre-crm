@@ -1,4 +1,7 @@
-import { CreateReminderInput, ReminderType } from 'src/modules/reminders/domain/types/reminder';
+import {
+  CreateReminderInput,
+  ReminderType,
+} from "src/modules/reminders/domain/types/reminder";
 
 export interface OpportunityForFollowUpPolicy {
   id: string;
@@ -14,45 +17,94 @@ export const PROPOSAL_EXPIRING_WINDOW_DAYS = 2;
 export const CUSTOMER_EVENT_WINDOW_DAYS = 7;
 
 export class FollowUpReminderPolicy {
-  static collect(opportunity: OpportunityForFollowUpPolicy, now = new Date()): CreateReminderInput[] {
+  static collect(
+    opportunity: OpportunityForFollowUpPolicy,
+    now = new Date(),
+  ): CreateReminderInput[] {
     const reminders: CreateReminderInput[] = [];
     const today = this.startOfUtcDay(now);
     const followUpDueLimit = this.addDays(now, FOLLOW_UP_DUE_WINDOW_DAYS);
-    const proposalExpiringLimit = this.addDays(today, PROPOSAL_EXPIRING_WINDOW_DAYS);
-    const eventApproachingLimit = this.addDays(today, CUSTOMER_EVENT_WINDOW_DAYS);
+    const proposalExpiringLimit = this.addDays(
+      today,
+      PROPOSAL_EXPIRING_WINDOW_DAYS,
+    );
+    const eventApproachingLimit = this.addDays(
+      today,
+      CUSTOMER_EVENT_WINDOW_DAYS,
+    );
     const nextFollowUpAt = opportunity.nextFollowUpAt;
-    const hasCurrentNextFollowUp = nextFollowUpAt
-      && (!opportunity.lastContactAt || nextFollowUpAt > opportunity.lastContactAt);
+    const hasCurrentNextFollowUp =
+      nextFollowUpAt &&
+      (!opportunity.lastContactAt ||
+        nextFollowUpAt > opportunity.lastContactAt);
 
     if (hasCurrentNextFollowUp) {
       if (nextFollowUpAt <= now) {
-        reminders.push(this.reminder(opportunity.id, ReminderType.FOLLOW_UP_OVERDUE, today));
+        reminders.push(
+          this.reminder(opportunity.id, ReminderType.FOLLOW_UP_OVERDUE, today),
+        );
       } else if (nextFollowUpAt <= followUpDueLimit) {
-        reminders.push(this.reminder(opportunity.id, ReminderType.FOLLOW_UP_DUE, nextFollowUpAt));
+        reminders.push(
+          this.reminder(
+            opportunity.id,
+            ReminderType.FOLLOW_UP_DUE,
+            nextFollowUpAt,
+          ),
+        );
       }
     } else if (opportunity.lastContactAt) {
-      const dueAt = this.addDays(opportunity.lastContactAt, FOLLOW_UP_GRACE_DAYS);
-      if (dueAt <= now) reminders.push(this.reminder(opportunity.id, ReminderType.FOLLOW_UP_OVERDUE, today));
+      const dueAt = this.addDays(
+        opportunity.lastContactAt,
+        FOLLOW_UP_GRACE_DAYS,
+      );
+      if (dueAt <= now)
+        reminders.push(
+          this.reminder(opportunity.id, ReminderType.FOLLOW_UP_OVERDUE, today),
+        );
     }
 
     if (opportunity.proposalValidUntil) {
       const validUntil = this.startOfUtcDay(opportunity.proposalValidUntil);
       if (validUntil < today) {
-        reminders.push(this.reminder(opportunity.id, ReminderType.PROPOSAL_EXPIRED, validUntil));
+        reminders.push(
+          this.reminder(
+            opportunity.id,
+            ReminderType.PROPOSAL_EXPIRED,
+            validUntil,
+          ),
+        );
       } else if (validUntil <= proposalExpiringLimit) {
-        reminders.push(this.reminder(opportunity.id, ReminderType.PROPOSAL_EXPIRING, validUntil));
+        reminders.push(
+          this.reminder(
+            opportunity.id,
+            ReminderType.PROPOSAL_EXPIRING,
+            validUntil,
+          ),
+        );
       }
     }
 
     const eventAt = this.startOfUtcDay(opportunity.customerEventAt);
     if (eventAt >= today && eventAt <= eventApproachingLimit) {
-      reminders.push(this.reminder(opportunity.id, ReminderType.CUSTOMER_EVENT_APPROACHING, eventAt));
+      // `dueAt` representa o dia do lembrete para permitir uma notificação por dia
+      // na janela crítica. A data real do evento segue como contexto da notificação.
+      reminders.push(
+        this.reminder(
+          opportunity.id,
+          ReminderType.CUSTOMER_EVENT_APPROACHING,
+          today,
+        ),
+      );
     }
 
     return reminders;
   }
 
-  private static reminder(opportunityId: string, type: ReminderType, dueAt: Date): CreateReminderInput {
+  private static reminder(
+    opportunityId: string,
+    type: ReminderType,
+    dueAt: Date,
+  ): CreateReminderInput {
     return { opportunityId, type, dueAt };
   }
 
