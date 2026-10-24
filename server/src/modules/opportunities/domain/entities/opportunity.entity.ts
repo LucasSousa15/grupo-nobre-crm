@@ -1,6 +1,9 @@
 import { OpportunityStage, FINAL_OPPORTUNITY_STAGES } from '../types/opportunity-stage';
-import { InvalidStageTransitionError } from '../../application/errors/invalid-stage-transition.error';
-import { StagePrerequisiteError } from '../../application/errors/stage-prerequisite.error';
+import { InvalidStageTransitionError } from '../errors/invalid-stage-transition.error';
+import { OpportunityCannotBeDeletedError } from '../errors/opportunity-cannot-be-deleted.error';
+import { OpportunityItemsInvalidError } from '../errors/opportunity-items-invalid.error';
+import { StagePrerequisiteError } from '../errors/stage-prerequisite.error';
+import { OpportunityItemInput } from '../types/opportunity';
 
 export interface OpportunitySnapshot {
   id: string;
@@ -39,16 +42,41 @@ export class Opportunity {
     }
 
     if (toStage === OpportunityStage.QUOTE_PRESENTATION) {
-      if (this.props.estimatedValue === null || this.props.estimatedValue <= 0) {
-        throw new StagePrerequisiteError('QUOTE_PRESENTATION', 'Informe um valor estimado maior que zero.');
-      }
-      if (this.props.itemsCount === 0) {
-        throw new StagePrerequisiteError('QUOTE_PRESENTATION', 'Inclua ao menos um item de brinde.');
-      }
+      this.assertQuoteData(toStage, this.props.estimatedValue, this.props.itemsCount);
     }
 
     if (toStage === OpportunityStage.LOST && !lossReason?.trim()) {
       throw new StagePrerequisiteError('LOST', 'Informe o motivo da perda.');
+    }
+  }
+
+  assertCanBeDeleted(): void {
+    if (this.props.stage !== OpportunityStage.FIRST_CONTACT) throw new OpportunityCannotBeDeletedError();
+  }
+
+  assertCurrentStageInvariants(estimatedValue: number | null, itemsCount: number): void {
+    const stagesRequiringQuoteData = [
+      OpportunityStage.QUOTE_PRESENTATION,
+      OpportunityStage.FOLLOW_UP,
+      OpportunityStage.FORECAST,
+      OpportunityStage.CLOSED,
+    ];
+    if (stagesRequiringQuoteData.includes(this.props.stage)) {
+      this.assertQuoteData(this.props.stage, estimatedValue, itemsCount);
+    }
+  }
+
+  static assertItemsAreUnique(items: OpportunityItemInput[]): void {
+    const productIds = items.map((item) => item.productId);
+    if (new Set(productIds).size !== productIds.length) throw new OpportunityItemsInvalidError();
+  }
+
+  private assertQuoteData(stage: OpportunityStage, estimatedValue: number | null, itemsCount: number): void {
+    if (estimatedValue === null || estimatedValue <= 0) {
+      throw new StagePrerequisiteError(stage, 'Informe um valor estimado maior que zero.');
+    }
+    if (itemsCount === 0) {
+      throw new StagePrerequisiteError(stage, 'Inclua ao menos um item de brinde.');
     }
   }
 }

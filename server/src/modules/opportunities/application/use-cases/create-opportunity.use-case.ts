@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { OpportunityCodeAlreadyUsedError } from '../errors/opportunity-code-already-used.error';
-import { OpportunityItemsInvalidError } from '../errors/opportunity-items-invalid.error';
 import { OpportunityReferenceInvalidError } from '../errors/opportunity-reference-invalid.error';
 import { OpportunityManagementRepository } from '../../domain/repositories/opportunity-management.repository';
 import { OpportunityReferencesRepository } from '../../domain/repositories/opportunity-references.repository';
 import { CreateOpportunityProps, OpportunityItemInput } from '../../domain/types/opportunity';
+import { Opportunity } from '../../domain/entities/opportunity.entity';
 
 @Injectable()
 export class CreateOpportunityUseCase {
@@ -27,8 +27,8 @@ export class CreateOpportunityUseCase {
     if (!(await this.references.sellerIsActive(sellerId))) {
       throw new OpportunityReferenceInvalidError('O vendedor informado não existe ou está inativo.');
     }
+    Opportunity.assertItemsAreUnique(items);
     const productIds = items.map((item) => item.productId);
-    if (new Set(productIds).size !== productIds.length) throw new OpportunityItemsInvalidError();
     const invalidProductIds = await this.references.findInactiveOrMissingProductIds(productIds);
     if (invalidProductIds.length > 0) {
       throw new OpportunityReferenceInvalidError('Um ou mais produtos informados não existem ou estão inativos.');

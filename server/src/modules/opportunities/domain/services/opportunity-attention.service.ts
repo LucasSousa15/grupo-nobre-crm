@@ -1,4 +1,5 @@
 import { ReminderType } from 'src/modules/reminders/domain/types/reminder';
+import { FOLLOW_UP_DUE_WINDOW_DAYS } from './follow-up-reminder-policy.service';
 import { OpportunityStage } from '../types/opportunity-stage';
 
 export enum OpportunityAttentionStatus {
@@ -19,8 +20,6 @@ export interface OpportunityAttentionInput {
   nextFollowUpAt: Date | null;
   reminders: OpportunityReminderForAttention[];
 }
-
-const FOLLOW_UP_DUE_WINDOW_DAYS = 1;
 
 export class OpportunityAttentionService {
   static calculate(input: OpportunityAttentionInput, now = new Date()): OpportunityAttentionStatus {

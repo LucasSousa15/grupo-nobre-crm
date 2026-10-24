@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { OpportunityCannotBeDeletedError } from 'src/modules/opportunities/application/errors/opportunity-cannot-be-deleted.error';
 import { OpportunityCodeAlreadyUsedError } from 'src/modules/opportunities/application/errors/opportunity-code-already-used.error';
-import { OpportunityItemsInvalidError } from 'src/modules/opportunities/application/errors/opportunity-items-invalid.error';
 import { OpportunityReferenceInvalidError } from 'src/modules/opportunities/application/errors/opportunity-reference-invalid.error';
-import { StagePrerequisiteError } from 'src/modules/opportunities/application/errors/stage-prerequisite.error';
+import { OpportunityCannotBeDeletedError } from 'src/modules/opportunities/domain/errors/opportunity-cannot-be-deleted.error';
+import { OpportunityItemsInvalidError } from 'src/modules/opportunities/domain/errors/opportunity-items-invalid.error';
+import { StagePrerequisiteError } from 'src/modules/opportunities/domain/errors/stage-prerequisite.error';
 import { CreateOpportunityUseCase } from 'src/modules/opportunities/application/use-cases/create-opportunity.use-case';
 import { DeleteOpportunityUseCase } from 'src/modules/opportunities/application/use-cases/delete-opportunity.use-case';
 import { FindOpportunitiesUseCase } from 'src/modules/opportunities/application/use-cases/find-opportunities.use-case';

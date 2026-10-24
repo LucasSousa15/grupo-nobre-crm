@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ChangeOpportunityStageUseCase } from 'src/modules/opportunities/application/use-cases/change-opportunity-stage.use-case';
-import { InvalidStageTransitionError } from 'src/modules/opportunities/application/errors/invalid-stage-transition.error';
-import { StagePrerequisiteError } from 'src/modules/opportunities/application/errors/stage-prerequisite.error';
+import { InvalidStageTransitionError } from 'src/modules/opportunities/domain/errors/invalid-stage-transition.error';
+import { StagePrerequisiteError } from 'src/modules/opportunities/domain/errors/stage-prerequisite.error';
 import { OpportunityStage } from 'src/modules/opportunities/domain/types/opportunity-stage';
 import { InMemoryOpportunityRepository } from '../repositories/in-memory-opportunity.repository';
 
