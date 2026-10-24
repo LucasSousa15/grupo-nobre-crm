@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, RefreshCw, UserRound } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import type { Seller } from "@/hooks/sellers/types";
@@ -45,6 +45,12 @@ function SellerSelection({ sellers, onSelect }: { sellers: Seller[]; onSelect: (
 export function SellerWorkspaceSection() {
   const sellersQuery = useSellers();
   const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
+
+  useEffect(() => {
+    const clearSelection = () => setSelectedSeller(null);
+    window.addEventListener('crm:go-home', clearSelection);
+    return () => window.removeEventListener('crm:go-home', clearSelection);
+  }, []);
 
   if (selectedSeller) {
     return <OpportunitiesSection seller={selectedSeller} onChangeSeller={() => setSelectedSeller(null)} />;
