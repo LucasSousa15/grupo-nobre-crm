@@ -8,9 +8,9 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date(value));
 }
 
-export function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
+export function OpportunityCard({ opportunity, onOpen, onDragStart }: { opportunity: Opportunity; onOpen: () => void; onDragStart: () => void }) {
   return (
-    <article className="rounded-xl border border-nobre-forest-deep/15 bg-nobre-paper p-4 shadow-sm transition-shadow hover:border-nobre-forest/40 hover:shadow-md">
+    <article draggable onDragStart={onDragStart} className="cursor-grab rounded-xl border border-nobre-forest-deep/15 bg-nobre-paper p-4 shadow-sm transition-shadow hover:border-nobre-forest/40 hover:shadow-md active:cursor-grabbing">
       <div className="flex items-start justify-between gap-3">
         <p className="text-xs font-semibold tracking-wide text-nobre-ink-soft">{opportunity.code}</p>
         <AttentionBadge status={opportunity.attentionStatus} />
@@ -28,6 +28,9 @@ export function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
           Venda perdida: {opportunity.lossReason}
         </p>
       )}
+      <button type="button" onClick={onOpen} className="mt-4 w-full rounded-lg border border-nobre-forest/25 px-3 py-2 text-sm font-medium text-nobre-forest-deep hover:border-nobre-forest hover:bg-nobre-moss">
+        Consultar oportunidade
+      </button>
     </article>
   );
 }

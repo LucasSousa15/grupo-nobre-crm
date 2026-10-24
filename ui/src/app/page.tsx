@@ -1,10 +1,10 @@
 import { AppLayout } from "@/layouts/app-layout";
-import { OpportunitiesSection } from "@/sections/opportunities/opportunities-section";
+import { SellerWorkspaceSection } from "@/sections/opportunities/seller-workspace-section";
 
 export default function Home() {
   return (
     <AppLayout>
-      <OpportunitiesSection />
+      <SellerWorkspaceSection />
     </AppLayout>
   );
 }

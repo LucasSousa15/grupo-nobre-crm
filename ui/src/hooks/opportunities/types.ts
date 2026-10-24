@@ -32,6 +32,8 @@ export interface Opportunity {
 
 export interface OpportunityFilters {
   attentionStatus?: AttentionStatus;
+  sellerId?: string;
+  search?: string;
 }
 
 export const stageLabels: Record<OpportunityStage, string> = {
