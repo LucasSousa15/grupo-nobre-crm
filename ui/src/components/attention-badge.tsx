@@ -1,8 +1,8 @@
 import { attentionLabels, type AttentionStatus } from "@/hooks/opportunities/types";
 
 const styles: Record<AttentionStatus, string> = {
-  NORMAL: "bg-slate-100 text-slate-700",
-  DUE_SOON: "bg-sky-100 text-sky-800",
+  NORMAL: "bg-nobre-paper-shade text-nobre-ink-soft",
+  DUE_SOON: "bg-nobre-moss text-nobre-forest-deep",
   OVERDUE: "bg-orange-100 text-orange-800",
   CRITICAL: "bg-red-100 text-red-800",
 };

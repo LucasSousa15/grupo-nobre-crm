@@ -13,7 +13,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="pt-BR"
       className="h-full antialiased"
     >
-      <body className="min-h-full bg-slate-50 text-slate-950">
+      <body className="min-h-full bg-nobre-paper text-nobre-forest-deep">
         <QueryProvider>{children}</QueryProvider>
       </body>
     </html>

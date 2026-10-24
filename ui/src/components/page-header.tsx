@@ -4,9 +4,9 @@ export function PageHeader({ title, description, action }: { title: string; desc
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <p className="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-amber-700">Pipeline comercial</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{title}</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{description}</p>
+        <p className="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-nobre-forest">Pipeline comercial</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-nobre-forest-deep">{title}</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-nobre-ink-soft">{description}</p>
       </div>
       {action}
     </div>
