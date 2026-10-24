@@ -10,6 +10,7 @@ import { CreateOpportunityDto } from '../dto/create-opportunity.dto';
 import { FindOpportunitiesDto } from '../dto/find-opportunities.dto';
 import { UpdateOpportunityDto } from '../dto/update-opportunity.dto';
 import { OpportunityViewModel } from '../view-models/opportunity.view-model';
+import { OpportunityStageHistoryViewModel } from '../view-models/opportunity-stage-history.view-model';
 
 @ApiTags('Opportunities')
 @Controller('opportunities')
@@ -26,8 +27,16 @@ export class OpportunitiesController {
   @ApiOperation({ summary: 'Lista oportunidades para o Kanban' })
   @ApiOkResponse({ description: 'Oportunidades encontradas.' })
   async findAll(@Query() filters: FindOpportunitiesDto) {
-    const opportunities = await this.findOpportunities.all(filters);
-    return { opportunities: opportunities.map(OpportunityViewModel.toHTTP) };
+    const page = await this.findOpportunities.all(filters);
+    return { opportunities: page.opportunities.map(OpportunityViewModel.toHTTP), nextCursor: page.nextCursor };
+  }
+
+  @Get(':id/history')
+  @ApiOperation({ summary: 'Lista a linha do tempo de mudanças de etapa' })
+  @ApiParam({ name: 'id', description: 'UUID da oportunidade' })
+  async findHistory(@Param('id') id: string) {
+    const history = await this.findOpportunities.history(id);
+    return { history: history.map(OpportunityStageHistoryViewModel.toHTTP) };
   }
 
   @Get(':id')

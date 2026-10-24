@@ -73,7 +73,28 @@ describe('Opportunity CRUD use cases', () => {
   it('filters opportunities for the Kanban query', async () => {
     const repository = repositoryWithReferences([opportunity(), opportunity({ id: 'other', code: 'OPP-2009', stage: OpportunityStage.FOLLOW_UP, companyName: 'Horizonte' })]);
     const found = await new FindOpportunitiesUseCase(repository).all({ stage: OpportunityStage.FOLLOW_UP, search: 'horiz' });
-    expect(found.map((item) => item.id)).toEqual(['other']);
+    expect(found.opportunities.map((item) => item.id)).toEqual(['other']);
+  });
+
+  it('paginates the Kanban query with the returned cursor', async () => {
+    const repository = repositoryWithReferences([opportunity(), opportunity({ id: 'other', code: 'OPP-2009' })]);
+    const useCase = new FindOpportunitiesUseCase(repository);
+    const firstPage = await useCase.all({ limit: 1 });
+    const secondPage = await useCase.all({ limit: 1, cursor: firstPage.nextCursor ?? undefined });
+
+    expect(firstPage.nextCursor).toBe('opportunity-id');
+    expect(secondPage.opportunities.map((item) => item.id)).toEqual(['other']);
+  });
+
+  it('returns a newest-first timeline for an existing opportunity', async () => {
+    const repository = repositoryWithReferences([opportunity()]);
+    repository.history.push(
+      { id: 'history-1', opportunityId: 'opportunity-id', fromStage: OpportunityStage.FIRST_CONTACT, toStage: OpportunityStage.QUOTE_PRESENTATION, changedAt: new Date('2026-10-16T10:00:00.000Z') },
+      { id: 'history-2', opportunityId: 'opportunity-id', fromStage: OpportunityStage.QUOTE_PRESENTATION, toStage: OpportunityStage.FOLLOW_UP, changedAt: new Date('2026-10-17T10:00:00.000Z') },
+    );
+
+    const history = await new FindOpportunitiesUseCase(repository).history('opportunity-id');
+    expect(history.map((entry) => entry.id)).toEqual(['history-2', 'history-1']);
   });
 
   it('replaces items and preserves quote data invariants after the opportunity advances', async () => {

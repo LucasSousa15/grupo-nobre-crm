@@ -7,7 +7,7 @@ import { OpportunityRepository, RecordStageTransitionInput } from 'src/modules/o
 import { OpportunityManagementRepository } from 'src/modules/opportunities/domain/repositories/opportunity-management.repository';
 import { OpportunityReferencesRepository } from 'src/modules/opportunities/domain/repositories/opportunity-references.repository';
 import { OpportunityAutomationRepository, OpportunityForAutomation } from 'src/modules/opportunities/domain/repositories/opportunity-automation.repository';
-import { CreateOpportunityProps, FindOpportunitiesFilters, OpportunityDetails, UpdateOpportunityProps } from 'src/modules/opportunities/domain/types/opportunity';
+import { CreateOpportunityProps, FindOpportunitiesFilters, OpportunityDetails, OpportunityPage, OpportunityStageHistory, UpdateOpportunityProps } from 'src/modules/opportunities/domain/types/opportunity';
 import { OpportunityStage } from 'src/modules/opportunities/domain/types/opportunity-stage';
 import { OpportunityAttentionService } from 'src/modules/opportunities/domain/services/opportunity-attention.service';
 import { ReminderType } from 'src/modules/reminders/domain/types/reminder';
@@ -75,7 +75,7 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
     return opportunity ? this.toDetails(opportunity) : null;
   }
 
-  async findMany(filters: FindOpportunitiesFilters): Promise<OpportunityDetails[]> {
+  async findMany(filters: FindOpportunitiesFilters): Promise<OpportunityPage> {
     const where: Prisma.OpportunityWhereInput = {
       ...(filters.stage ? { stage: filters.stage as PrismaOpportunityStage } : {}),
       ...(filters.sellerId ? { sellerId: filters.sellerId } : {}),
@@ -87,14 +87,36 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
         ],
       } : {}),
     };
-    const opportunities = await this.prisma.opportunity.findMany({
+    const pageSize = filters.limit ?? 24;
+    const results = await this.prisma.opportunity.findMany({
       where,
       include: opportunityDetailsInclude,
-      orderBy: { updatedAt: 'desc' },
+      orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
+      take: pageSize + 1,
+      ...(filters.cursor ? { cursor: { id: filters.cursor }, skip: 1 } : {}),
     });
-    return opportunities
+    const hasMore = results.length > pageSize;
+    const opportunities = results.slice(0, pageSize)
       .map((opportunity) => this.toDetails(opportunity))
       .filter((opportunity) => !filters.attentionStatus || opportunity.attentionStatus === filters.attentionStatus);
+    return {
+      opportunities,
+      nextCursor: hasMore ? results[pageSize - 1].id : null,
+    };
+  }
+
+  async findStageHistoryByOpportunityId(opportunityId: string): Promise<OpportunityStageHistory[]> {
+    const history = await this.prisma.stageHistory.findMany({
+      where: { opportunityId },
+      orderBy: { changedAt: 'desc' },
+    });
+    return history.map((entry) => ({
+      id: entry.id,
+      opportunityId: entry.opportunityId,
+      fromStage: entry.fromStage as OpportunityStage,
+      toStage: entry.toStage as OpportunityStage,
+      changedAt: entry.changedAt,
+    }));
   }
 
   async create(data: CreateOpportunityProps): Promise<OpportunityDetails> {

@@ -34,6 +34,19 @@ export interface OpportunityDetails {
   updatedAt: Date;
 }
 
+export interface OpportunityPage {
+  opportunities: OpportunityDetails[];
+  nextCursor: string | null;
+}
+
+export interface OpportunityStageHistory {
+  id: string;
+  opportunityId: string;
+  fromStage: OpportunityStage;
+  toStage: OpportunityStage;
+  changedAt: Date;
+}
+
 export interface CreateOpportunityProps {
   code: string;
   companyId: string;
@@ -63,4 +76,6 @@ export interface FindOpportunitiesFilters {
   companyId?: string;
   attentionStatus?: OpportunityAttentionStatus;
   search?: string;
+  cursor?: string;
+  limit?: number;
 }

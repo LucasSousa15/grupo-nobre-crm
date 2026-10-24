@@ -1,6 +1,6 @@
 import { OpportunityManagementRepository } from 'src/modules/opportunities/domain/repositories/opportunity-management.repository';
 import { OpportunityReferencesRepository } from 'src/modules/opportunities/domain/repositories/opportunity-references.repository';
-import { CreateOpportunityProps, FindOpportunitiesFilters, OpportunityDetails, UpdateOpportunityProps } from 'src/modules/opportunities/domain/types/opportunity';
+import { CreateOpportunityProps, FindOpportunitiesFilters, OpportunityDetails, OpportunityPage, OpportunityStageHistory, UpdateOpportunityProps } from 'src/modules/opportunities/domain/types/opportunity';
 import { OpportunityStage } from 'src/modules/opportunities/domain/types/opportunity-stage';
 import { OpportunityAttentionStatus } from 'src/modules/opportunities/domain/services/opportunity-attention.service';
 
@@ -8,7 +8,7 @@ export class InMemoryOpportunityManagementRepository implements OpportunityManag
   readonly companies = new Set<string>();
   readonly activeSellers = new Set<string>();
   readonly activeProducts = new Set<string>();
-  constructor(readonly opportunities: OpportunityDetails[] = []) {}
+  constructor(readonly opportunities: OpportunityDetails[] = [], readonly history: OpportunityStageHistory[] = []) {}
 
   async findDetailsById(id: string): Promise<OpportunityDetails | null> {
     return this.opportunities.find((opportunity) => opportunity.id === id) ?? null;
@@ -18,14 +18,24 @@ export class InMemoryOpportunityManagementRepository implements OpportunityManag
     return this.opportunities.find((opportunity) => opportunity.code === code) ?? null;
   }
 
-  async findMany(filters: FindOpportunitiesFilters): Promise<OpportunityDetails[]> {
-    return this.opportunities.filter((opportunity) => (
+  async findMany(filters: FindOpportunitiesFilters): Promise<OpportunityPage> {
+    const opportunities = this.opportunities.filter((opportunity) => (
       (!filters.stage || opportunity.stage === filters.stage)
       && (!filters.sellerId || opportunity.sellerId === filters.sellerId)
       && (!filters.companyId || opportunity.companyId === filters.companyId)
       && (!filters.attentionStatus || opportunity.attentionStatus === filters.attentionStatus)
       && (!filters.search || `${opportunity.code} ${opportunity.companyName}`.toLowerCase().includes(filters.search.toLowerCase()))
     ));
+    const pageSize = filters.limit ?? 24;
+    const start = filters.cursor ? opportunities.findIndex((opportunity) => opportunity.id === filters.cursor) + 1 : 0;
+    const page = opportunities.slice(Math.max(start, 0), Math.max(start, 0) + pageSize);
+    return { opportunities: page, nextCursor: start + pageSize < opportunities.length ? page.at(-1)?.id ?? null : null };
+  }
+
+  async findStageHistoryByOpportunityId(opportunityId: string): Promise<OpportunityStageHistory[]> {
+    return this.history
+      .filter((entry) => entry.opportunityId === opportunityId)
+      .sort((first, second) => second.changedAt.getTime() - first.changedAt.getTime());
   }
 
   async create(data: CreateOpportunityProps): Promise<OpportunityDetails> {
