@@ -4,6 +4,7 @@ import {
   OpportunityAutomationRepository,
   OpportunityForAutomation,
 } from "src/modules/opportunities/domain/repositories/opportunity-automation.repository";
+import { CloseExpiredOpportunityUseCase } from "src/modules/opportunities/application/use-cases/close-expired-opportunity.use-case";
 import { ReminderRepository } from "src/modules/reminders/domain/repositories/reminder.repository";
 import { CreateReminderInput } from "src/modules/reminders/domain/types/reminder";
 import { SellerNotificationService } from "src/services/seller-notifications/seller-notification.service";
@@ -23,6 +24,7 @@ export class FollowUpMonitorService {
     private readonly opportunities: OpportunityAutomationRepository,
     private readonly reminders: ReminderRepository,
     private readonly notifications: SellerNotificationService,
+    private readonly closeExpiredOpportunity: CloseExpiredOpportunityUseCase,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_8AM, {
@@ -38,7 +40,21 @@ export class FollowUpMonitorService {
 
   async execute(now = new Date()): Promise<number> {
     const opportunities = await this.opportunities.findOpenForAutomation();
-    const candidates = opportunities.flatMap(
+    const automaticallyLostIds = new Set(
+      (
+        await Promise.all(
+          opportunities.map(async (opportunity) =>
+            (await this.closeExpiredOpportunity.execute(opportunity.id, now))
+              ? opportunity.id
+              : null,
+          ),
+        )
+      ).filter((id): id is string => id !== null),
+    );
+    const activeOpportunities = opportunities.filter(
+      (opportunity) => !automaticallyLostIds.has(opportunity.id),
+    );
+    const candidates = activeOpportunities.flatMap(
       (opportunity): ReminderNotificationCandidate[] =>
         FollowUpReminderPolicy.collect(opportunity, now).map((reminder) => ({
           ...reminder,

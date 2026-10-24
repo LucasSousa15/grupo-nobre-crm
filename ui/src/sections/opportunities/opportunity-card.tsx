@@ -23,6 +23,11 @@ export function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
         <div className="flex justify-between gap-3"><dt>Próximo follow-up</dt><dd className="font-medium text-slate-800">{formatDate(opportunity.nextFollowUpAt)}</dd></div>
         <div className="flex justify-between gap-3"><dt>Evento</dt><dd className="font-medium text-slate-800">{formatDate(opportunity.customerEventAt)}</dd></div>
       </dl>
+      {opportunity.stage === "LOST" && opportunity.lossReason && (
+        <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-900">
+          Venda perdida: {opportunity.lossReason}
+        </p>
+      )}
     </article>
   );
 }

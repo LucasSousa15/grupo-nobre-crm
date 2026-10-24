@@ -11,6 +11,7 @@ import {
 import { FollowUpMonitorService } from "src/services/follow-up-monitor/follow-up-monitor.service";
 import { SellerNotificationService } from "src/services/seller-notifications/seller-notification.service";
 import { OpportunityStage } from "src/modules/opportunities/domain/types/opportunity-stage";
+import { CloseExpiredOpportunityUseCase } from "src/modules/opportunities/application/use-cases/close-expired-opportunity.use-case";
 
 class InMemoryOpportunityAutomationRepository implements OpportunityAutomationRepository {
   constructor(readonly opportunities: OpportunityForAutomation[]) {}
@@ -63,6 +64,10 @@ describe("FollowUpMonitorService", () => {
     ({
       sendFollowUpNotification: vi.fn().mockResolvedValue(undefined),
     }) as unknown as SellerNotificationService;
+  const automaticLosses = () =>
+    ({
+      execute: vi.fn().mockResolvedValue(false),
+    }) as unknown as CloseExpiredOpportunityUseCase;
 
   it("creates reminders for overdue follow-up, expired proposal and approaching event", async () => {
     const opportunities = new InMemoryOpportunityAutomationRepository([
@@ -79,6 +84,7 @@ describe("FollowUpMonitorService", () => {
       opportunities,
       reminders,
       notifier,
+      automaticLosses(),
     ).execute(now);
 
     expect(created).toBe(3);
@@ -112,6 +118,7 @@ describe("FollowUpMonitorService", () => {
       opportunities,
       reminders,
       notifier,
+      automaticLosses(),
     ).execute(now);
 
     expect(reminders.reminders).toEqual(
@@ -132,7 +139,7 @@ describe("FollowUpMonitorService", () => {
     );
   });
 
-  it("is idempotent and does not mutate commercial stages", async () => {
+  it("is idempotent and keeps opportunities open before the event deadline", async () => {
     const source = opportunity({
       stage: OpportunityStage.FORECAST,
       nextFollowUpAt: new Date("2026-10-14T12:00:00.000Z"),
@@ -144,6 +151,7 @@ describe("FollowUpMonitorService", () => {
       opportunities,
       reminders,
       notifier,
+      automaticLosses(),
     );
 
     expect(await service.execute(now)).toBe(1);
@@ -162,6 +170,7 @@ describe("FollowUpMonitorService", () => {
       opportunities,
       reminders,
       notifier,
+      automaticLosses(),
     );
 
     expect(await service.execute(new Date("2026-10-15T08:00:00.000Z"))).toBe(1);
@@ -190,6 +199,7 @@ describe("FollowUpMonitorService", () => {
       opportunities,
       reminders,
       notifier,
+      automaticLosses(),
     );
 
     expect(await service.execute(new Date("2026-10-15T08:00:00.000Z"))).toBe(1);
@@ -212,6 +222,29 @@ describe("FollowUpMonitorService", () => {
     );
   });
 
+  it("stops generating reminders after an opportunity is automatically lost", async () => {
+    const opportunities = new InMemoryOpportunityAutomationRepository([
+      opportunity({ customerEventAt: new Date("2026-10-14T00:00:00.000Z") }),
+    ]);
+    const reminders = new InMemoryReminderRepository();
+    const notifier = notifications();
+    const automaticLoss = {
+      execute: vi.fn().mockResolvedValue(true),
+    } as unknown as CloseExpiredOpportunityUseCase;
+
+    expect(
+      await new FollowUpMonitorService(
+        opportunities,
+        reminders,
+        notifier,
+        automaticLoss,
+      ).execute(now),
+    ).toBe(0);
+    expect(automaticLoss.execute).toHaveBeenCalledWith("opportunity-id", now);
+    expect(reminders.reminders).toHaveLength(0);
+    expect(notifier.sendFollowUpNotification).not.toHaveBeenCalled();
+  });
+
   it("ignores a stale next follow-up after the seller records a new contact", async () => {
     const opportunities = new InMemoryOpportunityAutomationRepository([
       opportunity({
@@ -227,6 +260,7 @@ describe("FollowUpMonitorService", () => {
         opportunities,
         reminders,
         notifier,
+        automaticLosses(),
       ).execute(new Date("2026-10-15T12:00:00.000Z")),
     ).toBe(0);
     expect(reminders.reminders).toHaveLength(0);

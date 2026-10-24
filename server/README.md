@@ -47,9 +47,9 @@ Após os testes, remova o banco isolado e seu volume com `npm run db:test:down`.
 
 ## Automação de follow-up
 
-`FollowUpMonitorService`, em `src/services/follow-up-monitor`, executa diariamente às 8h (America/Sao_Paulo). Ele cria lembretes idempotentes e nunca muda o estágio comercial.
+`FollowUpMonitorService`, em `src/services/follow-up-monitor`, executa diariamente às 8h (America/Sao_Paulo). Ele cria lembretes idempotentes e, no dia posterior ao evento, encerra como `LOST` uma oportunidade ainda aberta.
 
-No MVP, os lembretes são criados para: follow-up vencido, ausência de próximo follow-up após 3 dias sem contato, follow-up previsto para as próximas 24h e proposta vencida ou com vencimento em até 2 dias. Nos sete dias anteriores ao evento, o cron cria um lembrete de prazo comercial final por dia; a mesma execução não duplica o lembrete e a notificação informa a data real do evento.
+No MVP, os lembretes são criados para: follow-up vencido, ausência de próximo follow-up após 3 dias sem contato, follow-up previsto para as próximas 24h e proposta vencida ou com vencimento em até 2 dias. Nos sete dias anteriores ao evento, o cron cria um lembrete de prazo comercial final por dia; a mesma execução não duplica o lembrete e a notificação informa a data real do evento. Se o evento terminar sem fechamento, a oportunidade é movida automaticamente para `LOST` com motivo registrado e histórico de estágio.
 
 Toda oportunidade possui uma data de evento obrigatória, que representa o prazo comercial final. Ao avançar para apresentação de orçamento ou etapas posteriores, a proposta deve permanecer válida pelo menos até a véspera do evento.
 
@@ -89,4 +89,4 @@ IA foi usada para acelerar a geração de código e apoiar a documentação de c
 - `nextFollowUpAt` é persistido, pois representa um compromisso explícito do vendedor;
 - atenção é inicialmente derivada na leitura, não armazenada;
 - retornos permitidos: `FOLLOW_UP -> QUOTE_PRESENTATION` e `FORECAST -> FOLLOW_UP`;
-- não há automação que mude estágio comercial.
+- o cron só muda estágio no pós-evento: oportunidades abertas passam para `LOST` no dia seguinte, com motivo padronizado e histórico transacional.
