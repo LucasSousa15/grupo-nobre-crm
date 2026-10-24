@@ -6,6 +6,7 @@ import { OpportunitySnapshot } from 'src/modules/opportunities/domain/entities/o
 import { OpportunityRepository, RecordStageTransitionInput } from 'src/modules/opportunities/domain/repositories/opportunity.repository';
 import { OpportunityManagementRepository } from 'src/modules/opportunities/domain/repositories/opportunity-management.repository';
 import { OpportunityReferencesRepository } from 'src/modules/opportunities/domain/repositories/opportunity-references.repository';
+import { OpportunityAutomationRepository, OpportunityForAutomation } from 'src/modules/opportunities/domain/repositories/opportunity-automation.repository';
 import { CreateOpportunityProps, FindOpportunitiesFilters, OpportunityDetails, UpdateOpportunityProps } from 'src/modules/opportunities/domain/types/opportunity';
 import { OpportunityStage } from 'src/modules/opportunities/domain/types/opportunity-stage';
 
@@ -18,7 +19,7 @@ const opportunityDetailsInclude = {
 type OpportunityWithDetails = Prisma.OpportunityGetPayload<{ include: typeof opportunityDetailsInclude }>;
 
 @Injectable()
-export class PrismaOpportunityRepository implements OpportunityRepository, OpportunityManagementRepository, OpportunityReferencesRepository {
+export class PrismaOpportunityRepository implements OpportunityRepository, OpportunityManagementRepository, OpportunityReferencesRepository, OpportunityAutomationRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: string): Promise<OpportunitySnapshot | null> {
@@ -147,6 +148,21 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
     const products = await this.prisma.product.findMany({ where: { id: { in: ids }, active: true }, select: { id: true } });
     const validIds = new Set(products.map((product) => product.id));
     return ids.filter((id) => !validIds.has(id));
+  }
+
+  async findOpenForAutomation(): Promise<OpportunityForAutomation[]> {
+    const opportunities = await this.prisma.opportunity.findMany({
+      where: { stage: { notIn: [PrismaOpportunityStage.CLOSED, PrismaOpportunityStage.LOST] } },
+      select: {
+        id: true,
+        stage: true,
+        lastContactAt: true,
+        nextFollowUpAt: true,
+        proposalValidUntil: true,
+        customerEventAt: true,
+      },
+    });
+    return opportunities.map((opportunity) => ({ ...opportunity, stage: opportunity.stage as OpportunityStage }));
   }
 
   private toDetails(opportunity: OpportunityWithDetails): OpportunityDetails {

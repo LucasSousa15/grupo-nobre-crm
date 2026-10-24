@@ -43,6 +43,12 @@ npm run test:e2e
 
 Após os testes, remova o banco isolado e seu volume com `npm run db:test:down`.
 
+## Automação de follow-up
+
+`FollowUpMonitorService`, em `src/services/follow-up-monitor`, executa diariamente às 8h (America/Sao_Paulo). Ele cria lembretes idempotentes e nunca muda o estágio comercial.
+
+No MVP, os lembretes são criados para: follow-up vencido, ausência de próximo follow-up após 3 dias sem contato, follow-up previsto para as próximas 24h, proposta vencida ou com vencimento em até 2 dias e evento do cliente nos próximos 7 dias.
+
 ## Decisões iniciais
 
 - `Company`, `Seller` e `Product` são entidades persistidas;

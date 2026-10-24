@@ -5,6 +5,7 @@ import { DeleteOpportunityUseCase } from './application/use-cases/delete-opportu
 import { FindOpportunitiesUseCase } from './application/use-cases/find-opportunities.use-case';
 import { UpdateOpportunityUseCase } from './application/use-cases/update-opportunity.use-case';
 import { OpportunityManagementRepository } from './domain/repositories/opportunity-management.repository';
+import { OpportunityAutomationRepository } from './domain/repositories/opportunity-automation.repository';
 import { OpportunityRepository } from './domain/repositories/opportunity.repository';
 import { OpportunityReferencesRepository } from './domain/repositories/opportunity-references.repository';
 import { PrismaOpportunityRepository } from './infra/database/prisma/repositories/prisma-opportunity.repository';
@@ -22,6 +23,8 @@ import { OpportunitiesController } from './infra/http/controllers/opportunities.
     { provide: OpportunityRepository, useExisting: PrismaOpportunityRepository },
     { provide: OpportunityManagementRepository, useExisting: PrismaOpportunityRepository },
     { provide: OpportunityReferencesRepository, useExisting: PrismaOpportunityRepository },
+    { provide: OpportunityAutomationRepository, useExisting: PrismaOpportunityRepository },
   ],
+  exports: [OpportunityAutomationRepository],
 })
 export class OpportunitiesModule {}
