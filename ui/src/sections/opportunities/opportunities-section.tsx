@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { isAxiosError } from "axios";
 import { CheckCircle2, ChevronDown, Clock3, Flame, RefreshCw, RotateCcw, Search, TriangleAlert, UsersRound, type LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { useChangeOpportunityStage } from "@/hooks/opportunities/use-change-opportunity-stage";
@@ -83,7 +84,12 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
           setSelectedOpportunity(null);
           setRequestedStage(undefined);
         },
-        onError: () => setMoveError("Não foi possível mover a oportunidade. Confira os pré-requisitos da etapa e tente novamente."),
+        onError: (error) => {
+          const message = isAxiosError(error) && typeof error.response?.data?.message === "string"
+            ? error.response.data.message
+            : "Não foi possível mover a oportunidade. Confira os pré-requisitos da etapa e tente novamente.";
+          setMoveError(message);
+        },
       },
     );
   }
