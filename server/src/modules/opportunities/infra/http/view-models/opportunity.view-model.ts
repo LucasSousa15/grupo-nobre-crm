@@ -6,6 +6,7 @@ export class OpportunityViewModel {
       id: opportunity.id,
       code: opportunity.code,
       stage: opportunity.stage,
+      attentionStatus: opportunity.attentionStatus,
       estimatedValue: opportunity.estimatedValue,
       lastContactAt: opportunity.lastContactAt,
       nextFollowUpAt: opportunity.nextFollowUpAt,

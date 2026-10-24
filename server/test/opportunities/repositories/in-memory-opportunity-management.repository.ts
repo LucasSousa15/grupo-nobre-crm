@@ -2,6 +2,7 @@ import { OpportunityManagementRepository } from 'src/modules/opportunities/domai
 import { OpportunityReferencesRepository } from 'src/modules/opportunities/domain/repositories/opportunity-references.repository';
 import { CreateOpportunityProps, FindOpportunitiesFilters, OpportunityDetails, UpdateOpportunityProps } from 'src/modules/opportunities/domain/types/opportunity';
 import { OpportunityStage } from 'src/modules/opportunities/domain/types/opportunity-stage';
+import { OpportunityAttentionStatus } from 'src/modules/opportunities/domain/services/opportunity-attention.service';
 
 export class InMemoryOpportunityManagementRepository implements OpportunityManagementRepository, OpportunityReferencesRepository {
   readonly companies = new Set<string>();
@@ -22,6 +23,7 @@ export class InMemoryOpportunityManagementRepository implements OpportunityManag
       (!filters.stage || opportunity.stage === filters.stage)
       && (!filters.sellerId || opportunity.sellerId === filters.sellerId)
       && (!filters.companyId || opportunity.companyId === filters.companyId)
+      && (!filters.attentionStatus || opportunity.attentionStatus === filters.attentionStatus)
       && (!filters.search || `${opportunity.code} ${opportunity.companyName}`.toLowerCase().includes(filters.search.toLowerCase()))
     ));
   }
@@ -42,6 +44,7 @@ export class InMemoryOpportunityManagementRepository implements OpportunityManag
       proposalValidUntil: data.proposalValidUntil ?? null,
       customerEventAt: data.customerEventAt ?? null,
       lossReason: null,
+      attentionStatus: OpportunityAttentionStatus.NORMAL,
       items: (data.items ?? []).map((item) => ({ id: crypto.randomUUID(), productId: item.productId, productName: item.productId, quantity: item.quantity })),
       createdAt: now,
       updatedAt: now,

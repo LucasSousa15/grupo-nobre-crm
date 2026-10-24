@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 import { OpportunityStage } from 'src/modules/opportunities/domain/types/opportunity-stage';
+import { OpportunityAttentionStatus } from 'src/modules/opportunities/domain/services/opportunity-attention.service';
 
 export class FindOpportunitiesDto {
   @ApiPropertyOptional({ enum: OpportunityStage })
@@ -17,6 +18,11 @@ export class FindOpportunitiesDto {
   @IsOptional()
   @IsUUID()
   companyId?: string;
+
+  @ApiPropertyOptional({ enum: OpportunityAttentionStatus })
+  @IsOptional()
+  @IsEnum(OpportunityAttentionStatus)
+  attentionStatus?: OpportunityAttentionStatus;
 
   @ApiPropertyOptional({ example: 'Tech Alpha' })
   @IsOptional()

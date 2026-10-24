@@ -96,4 +96,31 @@ describe('Opportunities API (e2e)', () => {
     expect(response.body).toMatchObject({ code: 'INVALID_STAGE_TRANSITION' });
     expect(await prisma.stageHistory.count({ where: { opportunityId: opportunity.id } })).toBe(0);
   });
+
+  it('exposes and filters the attention status derived from overdue follow-up reminders', async () => {
+    const { company, seller } = await createReferences();
+    const opportunity = await prisma.opportunity.create({
+      data: {
+        code: 'OPP-E2E-004',
+        companyId: company.id,
+        sellerId: seller.id,
+        stage: 'FOLLOW_UP',
+        lastContactAt: new Date('2026-10-10T12:00:00.000Z'),
+      },
+    });
+    await prisma.reminder.createMany({
+      data: [
+        { opportunityId: opportunity.id, type: 'FOLLOW_UP_OVERDUE', dueAt: new Date('2026-10-13T00:00:00.000Z'), createdAt: new Date('2026-10-13T08:00:00.000Z') },
+        { opportunityId: opportunity.id, type: 'FOLLOW_UP_OVERDUE', dueAt: new Date('2026-10-14T00:00:00.000Z'), createdAt: new Date('2026-10-14T08:00:00.000Z') },
+      ],
+    });
+
+    const detail = await request(app.getHttpServer()).get(`/opportunities/${opportunity.id}`).expect(200);
+    const list = await request(app.getHttpServer()).get('/opportunities?attentionStatus=CRITICAL').expect(200);
+
+    expect(detail.body.opportunity.attentionStatus).toBe('CRITICAL');
+    expect(list.body.opportunities).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: opportunity.id, attentionStatus: 'CRITICAL' }),
+    ]));
+  });
 });

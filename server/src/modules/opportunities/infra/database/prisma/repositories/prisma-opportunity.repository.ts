@@ -9,11 +9,14 @@ import { OpportunityReferencesRepository } from 'src/modules/opportunities/domai
 import { OpportunityAutomationRepository, OpportunityForAutomation } from 'src/modules/opportunities/domain/repositories/opportunity-automation.repository';
 import { CreateOpportunityProps, FindOpportunitiesFilters, OpportunityDetails, UpdateOpportunityProps } from 'src/modules/opportunities/domain/types/opportunity';
 import { OpportunityStage } from 'src/modules/opportunities/domain/types/opportunity-stage';
+import { OpportunityAttentionService } from 'src/modules/opportunities/domain/services/opportunity-attention.service';
+import { ReminderType } from 'src/modules/reminders/domain/types/reminder';
 
 const opportunityDetailsInclude = {
   company: { select: { companyName: true } },
   seller: { select: { name: true } },
   items: { include: { product: { select: { name: true } } } },
+  reminders: { select: { type: true, createdAt: true } },
 } satisfies Prisma.OpportunityInclude;
 
 type OpportunityWithDetails = Prisma.OpportunityGetPayload<{ include: typeof opportunityDetailsInclude }>;
@@ -87,7 +90,9 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
       include: opportunityDetailsInclude,
       orderBy: { updatedAt: 'desc' },
     });
-    return opportunities.map((opportunity) => this.toDetails(opportunity));
+    return opportunities
+      .map((opportunity) => this.toDetails(opportunity))
+      .filter((opportunity) => !filters.attentionStatus || opportunity.attentionStatus === filters.attentionStatus);
   }
 
   async create(data: CreateOpportunityProps): Promise<OpportunityDetails> {
@@ -182,6 +187,15 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
       proposalValidUntil: opportunity.proposalValidUntil,
       customerEventAt: opportunity.customerEventAt,
       lossReason: opportunity.lossReason,
+      attentionStatus: OpportunityAttentionService.calculate({
+        stage: opportunity.stage as OpportunityStage,
+        lastContactAt: opportunity.lastContactAt,
+        nextFollowUpAt: opportunity.nextFollowUpAt,
+        reminders: opportunity.reminders.map((reminder) => ({
+          type: reminder.type as ReminderType,
+          createdAt: reminder.createdAt,
+        })),
+      }),
       items: opportunity.items.map((item) => ({ id: item.id, productId: item.productId, productName: item.product.name, quantity: item.quantity })),
       createdAt: opportunity.createdAt,
       updatedAt: opportunity.updatedAt,

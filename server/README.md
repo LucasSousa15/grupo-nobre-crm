@@ -53,6 +53,8 @@ Para cada lembrete criado, `SellerNotificationService`, em `src/services/seller-
 
 Para um follow-up vencido, o monitor cria no máximo um lembrete por oportunidade a cada dia. Isso permite a escalada de atenção sem duplicar a mesma execução do cron. Quando o vendedor atualiza `lastContactAt`, um `nextFollowUpAt` anterior a esse contato é tratado como obsoleto.
 
+As consultas de oportunidade retornam `attentionStatus`, calculado no domínio e sem persistência adicional: `DUE_SOON` para follow-up previsto nas próximas 24h, `OVERDUE` após um lembrete vencido e `CRITICAL` após dois ou mais lembretes vencidos desde o último contato. A listagem aceita o filtro opcional `attentionStatus`.
+
 ## Decisões iniciais
 
 - `Company`, `Seller` e `Product` são entidades persistidas;

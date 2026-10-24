@@ -10,12 +10,14 @@ import { FindOpportunitiesUseCase } from 'src/modules/opportunities/application/
 import { UpdateOpportunityUseCase } from 'src/modules/opportunities/application/use-cases/update-opportunity.use-case';
 import { OpportunityDetails } from 'src/modules/opportunities/domain/types/opportunity';
 import { OpportunityStage } from 'src/modules/opportunities/domain/types/opportunity-stage';
+import { OpportunityAttentionStatus } from 'src/modules/opportunities/domain/services/opportunity-attention.service';
 import { InMemoryOpportunityManagementRepository } from '../repositories/in-memory-opportunity-management.repository';
 
 const opportunity = (overrides: Partial<OpportunityDetails> = {}): OpportunityDetails => ({
   id: 'opportunity-id', code: 'OPP-2008', companyId: 'company-id', companyName: 'Tech Alpha', sellerId: 'seller-id', sellerName: 'Ana',
   stage: OpportunityStage.FIRST_CONTACT, estimatedValue: 4500, lastContactAt: null, nextFollowUpAt: null, proposalValidUntil: null,
   customerEventAt: null, lossReason: null, items: [{ id: 'item-id', productId: 'product-id', productName: 'Caneca', quantity: 300 }],
+  attentionStatus: OpportunityAttentionStatus.NORMAL,
   createdAt: new Date('2026-10-15T12:00:00.000Z'), updatedAt: new Date('2026-10-15T12:00:00.000Z'), ...overrides,
 });
 

@@ -1,4 +1,5 @@
 import { OpportunityStage } from './opportunity-stage';
+import { OpportunityAttentionStatus } from '../services/opportunity-attention.service';
 
 export interface OpportunityItemInput {
   productId: string;
@@ -24,6 +25,7 @@ export interface OpportunityDetails {
   proposalValidUntil: Date | null;
   customerEventAt: Date | null;
   lossReason: string | null;
+  attentionStatus: OpportunityAttentionStatus;
   items: OpportunityItemDetails[];
   createdAt: Date;
   updatedAt: Date;
@@ -56,5 +58,6 @@ export interface FindOpportunitiesFilters {
   stage?: OpportunityStage;
   sellerId?: string;
   companyId?: string;
+  attentionStatus?: OpportunityAttentionStatus;
   search?: string;
 }
