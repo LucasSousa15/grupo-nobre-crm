@@ -102,15 +102,15 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
   private async findOpportunityPageRows(filters: FindOpportunitiesFilters, pageSize: number) {
     const conditions: Prisma.Sql[] = [Prisma.sql`TRUE`];
     if (filters.stage) conditions.push(Prisma.sql`o.stage = ${filters.stage}::"OpportunityStage"`);
-    if (filters.sellerId) conditions.push(Prisma.sql`o.seller_id = ${filters.sellerId}::uuid`);
-    if (filters.companyId) conditions.push(Prisma.sql`o.company_id = ${filters.companyId}::uuid`);
+    if (filters.sellerId) conditions.push(Prisma.sql`o.seller_id = ${filters.sellerId}`);
+    if (filters.companyId) conditions.push(Prisma.sql`o.company_id = ${filters.companyId}`);
     if (filters.search?.trim()) {
       const term = `%${filters.search.trim()}%`;
       conditions.push(Prisma.sql`(o.code ILIKE ${term} OR EXISTS (SELECT 1 FROM companies c WHERE c.id = o.company_id AND c.company_name ILIKE ${term}))`);
     }
     const baseWhere = Prisma.join(conditions, ' AND ');
     const attentionFilter = filters.attentionStatus ? Prisma.sql`AND f.attention_status = ${filters.attentionStatus}` : Prisma.empty;
-    const cursorFilter = filters.cursor ? Prisma.sql`AND (f.updated_at, f.id) < (SELECT updated_at, id FROM scored WHERE id = ${filters.cursor}::uuid)` : Prisma.empty;
+    const cursorFilter = filters.cursor ? Prisma.sql`AND (f.updated_at, f.id) < (SELECT updated_at, id FROM scored WHERE id = ${filters.cursor})` : Prisma.empty;
     return this.prisma.$queryRaw<Array<{
       id: string; total: number | bigint; normal: number | bigint; due_soon: number | bigint; overdue: number | bigint; critical: number | bigint;
     }>>(Prisma.sql`
