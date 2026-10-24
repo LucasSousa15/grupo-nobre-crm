@@ -43,3 +43,9 @@ button,
 select {
   font: inherit;
 }
+
+button:not(:disabled),
+select,
+a[href] {
+  cursor: pointer;
+}
