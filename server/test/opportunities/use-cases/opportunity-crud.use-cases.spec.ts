@@ -36,7 +36,7 @@ describe('Opportunity CRUD use cases', () => {
     const created = await new CreateOpportunityUseCase(repository, repository).execute({
       code: ' opp-2009 ', companyId: 'company-id', sellerId: 'seller-id', estimatedValue: 1200, customerEventAt: new Date('2026-11-30T00:00:00.000Z'), items: [{ productId: 'product-id', quantity: 50 }],
     });
-    expect(created).toMatchObject({ code: 'TECH-ALPHA-001', stage: OpportunityStage.FIRST_CONTACT, estimatedValue: 50 });
+    expect(created).toMatchObject({ code: 'TECH-ALPHA001', stage: OpportunityStage.FIRST_CONTACT, estimatedValue: 50 });
     expect(created.items).toHaveLength(1);
   });
 
@@ -59,7 +59,7 @@ describe('Opportunity CRUD use cases', () => {
   it('does not create duplicate codes or invalid references', async () => {
     const repository = repositoryWithReferences([opportunity()]);
     const create = new CreateOpportunityUseCase(repository, repository);
-    await expect(create.execute({ companyId: 'company-id', sellerId: 'seller-id', customerEventAt: new Date('2026-11-30T00:00:00.000Z') })).resolves.toMatchObject({ code: 'TECH-ALPHA-001' });
+    await expect(create.execute({ companyId: 'company-id', sellerId: 'seller-id', customerEventAt: new Date('2026-11-30T00:00:00.000Z') })).resolves.toMatchObject({ code: 'TECH-ALPHA001' });
     await expect(create.execute({ code: 'OPP-2009', companyId: 'missing', sellerId: 'seller-id', customerEventAt: new Date('2026-11-30T00:00:00.000Z') })).rejects.toBeInstanceOf(OpportunityReferenceInvalidError);
   });
 

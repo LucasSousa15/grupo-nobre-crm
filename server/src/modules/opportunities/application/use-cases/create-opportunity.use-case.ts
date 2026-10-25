@@ -27,7 +27,7 @@ export class CreateOpportunityUseCase {
     const companyCode = await this.references.companyCode(companyId);
     if (!companyCode) throw new OpportunityReferenceInvalidError('A empresa informada não existe.');
     for (let sequence = 1; sequence < 10000; sequence += 1) {
-      const code = `${companyCode}-${String(sequence).padStart(3, '0')}`;
+      const code = `${companyCode}${String(sequence).padStart(3, '0')}`;
       if (!(await this.opportunities.findByCode(code))) return code;
     }
     throw new OpportunityCodeAlreadyUsedError();
