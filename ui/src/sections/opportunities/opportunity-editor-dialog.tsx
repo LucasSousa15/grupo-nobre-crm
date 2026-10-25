@@ -92,9 +92,7 @@ export function OpportunityEditorDialog({
     control: form.control,
     name: 'items',
   });
-  const companyId = useWatch({ control: form.control, name: 'companyId' });
   const watchedItems = useWatch({ control: form.control, name: 'items' }) ?? [];
-  const company = companies.data?.find((item) => item.id === companyId);
   const total = watchedItems.reduce(
     (sum, item) =>
       sum +
@@ -149,7 +147,7 @@ export function OpportunityEditorDialog({
         </header>
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <label>Código<input disabled value={opportunity?.code ?? (company?.code ? `${company.code}001` : 'Selecione uma empresa')} className="mt-1 w-full rounded-lg border bg-nobre-paper-shade p-2" /></label>
+          <label>Código<input disabled value={opportunity?.code ?? 'Será gerado automaticamente (OPP-0000)'} className="mt-1 w-full rounded-lg border bg-nobre-paper-shade p-2" /></label>
           <label>Empresa
             <select {...form.register('companyId')} aria-invalid={Boolean(form.formState.errors.companyId)} className="mt-1 w-full cursor-pointer rounded-lg border p-2 aria-[invalid=true]:border-red-600">
               <option value="">Selecione</option>

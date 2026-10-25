@@ -29,6 +29,15 @@ describe('OpportunityEditorDialog', () => {
     expect(api.post).not.toHaveBeenCalled();
   });
 
+  it('shows an opportunity code preview that is independent from the selected company', async () => {
+    const user = userEvent.setup();
+    renderDialog();
+
+    expect(screen.getByLabelText('Código')).toHaveValue('Será gerado automaticamente (OPP-0000)');
+    await user.selectOptions(screen.getAllByRole('combobox')[0], '00000000-0000-4000-8000-000000000001');
+    expect(screen.getByLabelText('Código')).toHaveValue('Será gerado automaticamente (OPP-0000)');
+  });
+
   it('sends a validated creation payload', async () => {
     const user = userEvent.setup();
     api.post.mockResolvedValue({ data: {} });
