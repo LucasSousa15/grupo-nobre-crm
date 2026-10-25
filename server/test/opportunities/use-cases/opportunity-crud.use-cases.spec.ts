@@ -47,6 +47,19 @@ describe('Opportunity CRUD use cases', () => {
     })).rejects.toMatchObject({ code: 'OPPORTUNITY_EVENT_DATE_REQUIRED' });
   });
 
+  it('does not accept event or proposal dates in the past', async () => {
+    const repository = repositoryWithReferences();
+    const create = new CreateOpportunityUseCase(repository, repository);
+
+    await expect(create.execute({
+      companyId: 'company-id', sellerId: 'seller-id', customerEventAt: new Date('2020-01-01T00:00:00.000Z'),
+    })).rejects.toMatchObject({ code: 'OPPORTUNITY_DATE_IN_PAST' });
+
+    await expect(create.execute({
+      companyId: 'company-id', sellerId: 'seller-id', customerEventAt: new Date('2099-01-02T00:00:00.000Z'), proposalValidUntil: new Date('2020-01-01T00:00:00.000Z'),
+    })).rejects.toMatchObject({ code: 'OPPORTUNITY_DATE_IN_PAST' });
+  });
+
   it('does not accept a proposal that expires before the event deadline', async () => {
     const repository = repositoryWithReferences();
     await expect(new CreateOpportunityUseCase(repository, repository).execute({
@@ -107,6 +120,18 @@ describe('Opportunity CRUD use cases', () => {
     expect(updated.items).toMatchObject([{ productId: 'product-2', quantity: 20 }]);
     await expect(update.execute('opportunity-id', { estimatedValue: null })).resolves.toMatchObject({ estimatedValue: 20 });
     await expect(update.execute('opportunity-id', { proposalValidUntil: new Date('2026-11-28T00:00:00.000Z') })).rejects.toBeInstanceOf(StagePrerequisiteError);
+  });
+
+  it('locks commercial details after quote presentation until the opportunity returns to quote review', async () => {
+    const repository = repositoryWithReferences([opportunity({
+      stage: OpportunityStage.FOLLOW_UP,
+      proposalValidUntil: new Date('2026-11-29T00:00:00.000Z'),
+    })]);
+    const update = new UpdateOpportunityUseCase(repository, repository);
+
+    await expect(update.execute('opportunity-id', {
+      items: [{ productId: 'product-2', quantity: 20 }],
+    })).rejects.toMatchObject({ code: 'OPPORTUNITY_FIELD_LOCKED' });
   });
 
   it('deletes only opportunities still in First Contact', async () => {

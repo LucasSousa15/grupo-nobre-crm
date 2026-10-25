@@ -34,7 +34,7 @@ describe('Opportunities API (e2e)', () => {
 
   async function createReferences() {
     const [company, seller, product] = await Promise.all([
-      prisma.company.create({ data: { companyName: 'Empresa E2E', contactName: 'Mariana E2E', contactEmail: 'mariana.e2e@nobrebrindes.local', contactPhone: '11999990000' } }),
+      prisma.company.create({ data: { code: 'EMPRESAE2E', companyName: 'Empresa E2E', contactName: 'Mariana E2E', contactEmail: 'mariana.e2e@nobrebrindes.local', contactPhone: '11999990000' } }),
       prisma.seller.create({ data: { name: 'Ana E2E', email: 'ana.e2e@nobrebrindes.local' } }),
       prisma.product.create({ data: { name: 'Caneca E2E', unitPrice: 15 } }),
     ]);
@@ -47,7 +47,6 @@ describe('Opportunities API (e2e)', () => {
     const response = await request(app.getHttpServer())
       .post('/opportunities')
       .send({
-        code: 'opp-e2e-001',
         companyId: company.id,
         sellerId: seller.id,
         estimatedValue: 4500,
@@ -57,7 +56,7 @@ describe('Opportunities API (e2e)', () => {
       .expect(201);
 
     expect(response.body.opportunity).toMatchObject({
-      code: 'OPP-E2E-001',
+      code: 'EMPRESAE2E001',
       stage: 'FIRST_CONTACT',
       company: { contactName: 'Mariana E2E', contactEmail: 'mariana.e2e@nobrebrindes.local', contactPhone: '11999990000' },
     });
@@ -71,15 +70,26 @@ describe('Opportunities API (e2e)', () => {
 
     await request(app.getHttpServer())
       .post('/opportunities')
-      .send({ code: 'OPP-E2E-MISSING-EVENT', companyId: company.id, sellerId: seller.id })
+      .send({ companyId: company.id, sellerId: seller.id })
       .expect(400);
+  });
+
+  it('rejects an event date in the past', async () => {
+    const { company, seller } = await createReferences();
+
+    const response = await request(app.getHttpServer())
+      .post('/opportunities')
+      .send({ companyId: company.id, sellerId: seller.id, customerEventAt: '2020-01-01' })
+      .expect(422);
+
+    expect(response.body).toMatchObject({ code: 'OPPORTUNITY_DATE_IN_PAST' });
   });
 
   it('moves an opportunity to quote presentation and appends its stage history in the test database', async () => {
     const { company, seller, product } = await createReferences();
     const created = await request(app.getHttpServer())
       .post('/opportunities')
-      .send({ code: 'OPP-E2E-002', companyId: company.id, sellerId: seller.id, estimatedValue: 9800, customerEventAt: '2026-11-30', proposalValidUntil: '2026-11-29', items: [{ productId: product.id, quantity: 120 }] })
+      .send({ companyId: company.id, sellerId: seller.id, estimatedValue: 9800, customerEventAt: '2026-11-30', proposalValidUntil: '2026-11-29', items: [{ productId: product.id, quantity: 120 }] })
       .expect(201);
 
     await request(app.getHttpServer())

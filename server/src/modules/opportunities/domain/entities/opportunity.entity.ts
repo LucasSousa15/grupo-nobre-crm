@@ -3,8 +3,10 @@ import { InvalidStageTransitionError } from '../errors/invalid-stage-transition.
 import { OpportunityCannotBeDeletedError } from '../errors/opportunity-cannot-be-deleted.error';
 import { OpportunityItemsInvalidError } from '../errors/opportunity-items-invalid.error';
 import { OpportunityEventDateRequiredError } from '../errors/opportunity-event-date-required.error';
+import { OpportunityDateInPastError } from '../errors/opportunity-date-in-past.error';
+import { OpportunityFieldLockedError } from '../errors/opportunity-field-locked.error';
 import { StagePrerequisiteError } from '../errors/stage-prerequisite.error';
-import { OpportunityItemInput } from '../types/opportunity';
+import { OpportunityItemInput, UpdateOpportunityProps } from '../types/opportunity';
 
 export interface OpportunitySnapshot {
   id: string;
@@ -64,6 +66,26 @@ export class Opportunity {
     if (this.props.stage !== OpportunityStage.FIRST_CONTACT) throw new OpportunityCannotBeDeletedError();
   }
 
+  assertCanEditDetails(input: UpdateOpportunityProps): void {
+    if (FINAL_OPPORTUNITY_STAGES.has(this.props.stage)) {
+      throw new OpportunityFieldLockedError('Oportunidades em etapa final não podem ter seus dados comerciais alterados.');
+    }
+
+    if (input.companyId !== undefined && this.props.stage !== OpportunityStage.FIRST_CONTACT) {
+      throw new OpportunityFieldLockedError('A empresa só pode ser alterada enquanto a oportunidade estiver em Primeiro Contato.');
+    }
+
+    const changesProposalDetails = input.items !== undefined
+      || input.proposalValidUntil !== undefined
+      || input.customerEventAt !== undefined;
+    const allowsProposalEdition = this.props.stage === OpportunityStage.FIRST_CONTACT
+      || this.props.stage === OpportunityStage.QUOTE_PRESENTATION;
+
+    if (changesProposalDetails && !allowsProposalEdition) {
+      throw new OpportunityFieldLockedError('Para revisar a proposta, retorne a oportunidade para Apresentação de Orçamento.');
+    }
+  }
+
   transitionOptions(): OpportunityTransitionOption[] {
     return allowedTransitions[this.props.stage].map((stage) => {
       const requirements = stage === OpportunityStage.QUOTE_PRESENTATION
@@ -97,6 +119,20 @@ export class Opportunity {
 
   static assertEventDateProvided(customerEventAt: Date | null | undefined): asserts customerEventAt is Date {
     if (!customerEventAt) throw new OpportunityEventDateRequiredError();
+  }
+
+  static assertDatesAreNotInPast(
+    customerEventAt: Date | null | undefined,
+    proposalValidUntil: Date | null | undefined,
+    referenceDate = new Date(),
+  ): void {
+    const today = this.startOfUtcDay(referenceDate);
+    if (customerEventAt && this.startOfUtcDay(customerEventAt) < today) {
+      throw new OpportunityDateInPastError('evento');
+    }
+    if (proposalValidUntil && this.startOfUtcDay(proposalValidUntil) < today) {
+      throw new OpportunityDateInPastError('validade da proposta');
+    }
   }
 
   static assertProposalDeadline(proposalValidUntil: Date | null | undefined, customerEventAt: Date | null | undefined): void {

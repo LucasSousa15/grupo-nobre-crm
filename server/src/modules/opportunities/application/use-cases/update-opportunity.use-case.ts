@@ -17,6 +17,16 @@ export class UpdateOpportunityUseCase {
     const current = await this.opportunities.findDetailsById(id);
     if (!current) throw new ResourceNotFoundError('Oportunidade');
 
+    Opportunity.restore({
+      id: current.id,
+      code: current.code,
+      stage: current.stage,
+      estimatedValue: current.estimatedValue,
+      itemsCount: current.items.length,
+      proposalValidUntil: current.proposalValidUntil,
+      customerEventAt: current.customerEventAt,
+    }).assertCanEditDetails(input);
+
     if (input.companyId !== undefined && !(await this.references.companyExists(input.companyId))) {
       throw new OpportunityReferenceInvalidError('A empresa informada não existe.');
     }
@@ -31,6 +41,10 @@ export class UpdateOpportunityUseCase {
       : await this.calculateEstimatedValue(items);
     const proposalValidUntil = input.proposalValidUntil === undefined ? current.proposalValidUntil : input.proposalValidUntil;
     const customerEventAt = input.customerEventAt === undefined ? current.customerEventAt : input.customerEventAt;
+    Opportunity.assertDatesAreNotInPast(
+      input.customerEventAt === undefined ? undefined : customerEventAt,
+      input.proposalValidUntil === undefined ? undefined : proposalValidUntil,
+    );
     Opportunity.assertProposalDeadline(proposalValidUntil, customerEventAt);
     Opportunity.restore({
       id: current.id,

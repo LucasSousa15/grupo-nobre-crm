@@ -15,6 +15,7 @@ export class CreateOpportunityUseCase {
 
   async execute(input: CreateOpportunityProps) {
     Opportunity.assertEventDateProvided(input.customerEventAt);
+    Opportunity.assertDatesAreNotInPast(input.customerEventAt, input.proposalValidUntil);
     Opportunity.assertProposalDeadline(input.proposalValidUntil, input.customerEventAt);
     const items = input.items ?? [];
     await this.validateReferences(input.companyId, input.sellerId, items);
