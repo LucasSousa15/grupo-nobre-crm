@@ -224,10 +224,6 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
     return (await this.prisma.company.count({ where: { id } })) === 1;
   }
 
-  async companyCode(id: string): Promise<string | null> {
-    return (await this.prisma.company.findUnique({ where: { id }, select: { code: true } }))?.code ?? null;
-  }
-
   async sellerIsActive(id: string): Promise<boolean> {
     return (await this.prisma.seller.count({ where: { id, active: true } })) === 1;
   }

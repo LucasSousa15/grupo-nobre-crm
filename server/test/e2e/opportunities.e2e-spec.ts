@@ -56,13 +56,26 @@ describe('Opportunities API (e2e)', () => {
       .expect(201);
 
     expect(response.body.opportunity).toMatchObject({
-      code: 'EMPRESAE2E001',
+      code: 'OPP-2001',
       stage: 'FIRST_CONTACT',
       company: { contactName: 'Mariana E2E', contactEmail: 'mariana.e2e@nobrebrindes.local', contactPhone: '11999990000' },
     });
     const persisted = await prisma.opportunity.findUnique({ where: { id: response.body.opportunity.id }, include: { items: true } });
     expect(persisted?.items).toHaveLength(1);
     expect(persisted?.items[0]).toMatchObject({ productId: product.id, quantity: 300 });
+  });
+
+  it('enforces the OPP-#### format in the database', async () => {
+    const { company, seller } = await createReferences();
+
+    await expect(prisma.opportunity.create({
+      data: {
+        code: 'EMPRESA-001',
+        companyId: company.id,
+        sellerId: seller.id,
+        customerEventAt: new Date('2026-11-30T00:00:00.000Z'),
+      },
+    })).rejects.toThrow('opportunities_code_format_check');
   });
 
   it('requires an event date for a new opportunity', async () => {
@@ -87,7 +100,7 @@ describe('Opportunities API (e2e)', () => {
 
   it('schedules follow-up and lets the seller conclude an open reminder', async () => {
     const { company, seller } = await createReferences();
-    const opportunity = await prisma.opportunity.create({ data: { code: 'EMPRESAE2E001', companyId: company.id, sellerId: seller.id, customerEventAt: new Date('2026-11-30T00:00:00.000Z') } });
+    const opportunity = await prisma.opportunity.create({ data: { code: 'OPP-2001', companyId: company.id, sellerId: seller.id, customerEventAt: new Date('2026-11-30T00:00:00.000Z') } });
     const reminder = await prisma.reminder.create({ data: { opportunityId: opportunity.id, type: 'FOLLOW_UP_OVERDUE', dueAt: new Date(Date.now() + 86_400_000) } });
 
     const updateResponse = await request(app.getHttpServer())
@@ -107,7 +120,7 @@ describe('Opportunities API (e2e)', () => {
     const { company, seller } = await createReferences();
     const opportunity = await prisma.opportunity.create({
       data: {
-        code: 'EMPRESAE2E001',
+        code: 'OPP-2001',
         companyId: company.id,
         sellerId: seller.id,
         customerEventAt: new Date('2026-11-30T00:00:00.000Z'),
@@ -146,7 +159,7 @@ describe('Opportunities API (e2e)', () => {
   it('rejects an invalid direct transition to Closed without persisting history', async () => {
     const { company, seller } = await createReferences();
     const opportunity = await prisma.opportunity.create({
-      data: { code: 'OPP-E2E-003', companyId: company.id, sellerId: seller.id, customerEventAt: new Date('2026-11-30T00:00:00.000Z') },
+      data: { code: 'OPP-2003', companyId: company.id, sellerId: seller.id, customerEventAt: new Date('2026-11-30T00:00:00.000Z') },
     });
 
     const response = await request(app.getHttpServer())
@@ -162,7 +175,7 @@ describe('Opportunities API (e2e)', () => {
     const { company, seller } = await createReferences();
     const opportunity = await prisma.opportunity.create({
       data: {
-        code: 'OPP-E2E-004',
+        code: 'OPP-2004',
         companyId: company.id,
         sellerId: seller.id,
         stage: 'FOLLOW_UP',
