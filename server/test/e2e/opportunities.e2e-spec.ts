@@ -85,6 +85,23 @@ describe('Opportunities API (e2e)', () => {
     expect(response.body).toMatchObject({ code: 'OPPORTUNITY_DATE_IN_PAST' });
   });
 
+  it('schedules follow-up and lets the seller conclude an open reminder', async () => {
+    const { company, seller } = await createReferences();
+    const opportunity = await prisma.opportunity.create({ data: { code: 'EMPRESAE2E001', companyId: company.id, sellerId: seller.id, customerEventAt: new Date('2026-11-30T00:00:00.000Z') } });
+    const reminder = await prisma.reminder.create({ data: { opportunityId: opportunity.id, type: 'FOLLOW_UP_DUE', dueAt: new Date(Date.now() + 86_400_000) } });
+
+    await request(app.getHttpServer())
+      .patch(`/opportunities/${opportunity.id}`)
+      .send({ nextFollowUpAt: new Date(Date.now() + 172_800_000).toISOString() })
+      .expect(200);
+    await request(app.getHttpServer()).get(`/opportunities/${opportunity.id}/reminders`).expect(200)
+      .expect(({ body }) => expect(body.reminders).toEqual(expect.arrayContaining([expect.objectContaining({ id: reminder.id, status: 'DISMISSED' })])));
+
+    const pendingReminder = await prisma.reminder.create({ data: { opportunityId: opportunity.id, type: 'PROPOSAL_EXPIRING', dueAt: new Date(Date.now() + 259_200_000) } });
+    await request(app.getHttpServer()).patch(`/opportunities/${opportunity.id}/reminders/${pendingReminder.id}/dismiss`).expect(204);
+    expect((await prisma.reminder.findUnique({ where: { id: pendingReminder.id } }))?.status).toBe('DISMISSED');
+  });
+
   it('moves an opportunity to quote presentation and appends its stage history in the test database', async () => {
     const { company, seller, product } = await createReferences();
     const created = await request(app.getHttpServer())

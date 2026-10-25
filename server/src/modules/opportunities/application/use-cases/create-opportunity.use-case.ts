@@ -5,6 +5,7 @@ import { OpportunityManagementRepository } from '../../domain/repositories/oppor
 import { OpportunityReferencesRepository } from '../../domain/repositories/opportunity-references.repository';
 import { CreateOpportunityProps, OpportunityItemInput } from '../../domain/types/opportunity';
 import { Opportunity } from '../../domain/entities/opportunity.entity';
+import { OpportunityPricingService } from '../../domain/services/opportunity-pricing.service';
 
 @Injectable()
 export class CreateOpportunityUseCase {
@@ -52,7 +53,6 @@ export class CreateOpportunityUseCase {
   private async calculateEstimatedValue(items: OpportunityItemInput[]): Promise<number | undefined> {
     if (items.length === 0) return undefined;
     const prices = await this.references.findActiveProductUnitPrices(items.map((item) => item.productId));
-    const total = items.reduce((sum, item) => sum + (prices.get(item.productId) ?? 0) * item.quantity, 0);
-    return Math.round(total * 100) / 100;
+    return OpportunityPricingService.calculate(items, prices);
   }
 }

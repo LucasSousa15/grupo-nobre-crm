@@ -5,6 +5,7 @@ import { OpportunityItemsInvalidError } from '../errors/opportunity-items-invali
 import { OpportunityEventDateRequiredError } from '../errors/opportunity-event-date-required.error';
 import { OpportunityDateInPastError } from '../errors/opportunity-date-in-past.error';
 import { OpportunityFieldLockedError } from '../errors/opportunity-field-locked.error';
+import { InvalidFollowUpDateError } from '../errors/invalid-follow-up-date.error';
 import { StagePrerequisiteError } from '../errors/stage-prerequisite.error';
 import { OpportunityItemInput, UpdateOpportunityProps } from '../types/opportunity';
 
@@ -141,6 +142,18 @@ export class Opportunity {
     const eventDeadline = this.addDays(this.startOfUtcDay(customerEventAt), -1);
     if (this.startOfUtcDay(proposalValidUntil) < eventDeadline) {
       throw new StagePrerequisiteError('QUOTE_PRESENTATION', 'A proposta deve ser válida até pelo menos a véspera do evento.');
+    }
+  }
+
+  static assertFollowUpDates(lastContactAt: Date | null | undefined, nextFollowUpAt: Date | null | undefined, now = new Date()): void {
+    if (lastContactAt && lastContactAt > now) {
+      throw new InvalidFollowUpDateError('O último contato não pode estar no futuro.');
+    }
+    if (nextFollowUpAt && nextFollowUpAt <= now) {
+      throw new InvalidFollowUpDateError('O próximo follow-up deve ser agendado para o futuro.');
+    }
+    if (lastContactAt && nextFollowUpAt && nextFollowUpAt <= lastContactAt) {
+      throw new InvalidFollowUpDateError('O próximo follow-up deve acontecer após o último contato.');
     }
   }
 

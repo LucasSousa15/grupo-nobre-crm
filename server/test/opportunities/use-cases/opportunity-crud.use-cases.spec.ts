@@ -134,6 +134,15 @@ describe('Opportunity CRUD use cases', () => {
     })).rejects.toMatchObject({ code: 'OPPORTUNITY_FIELD_LOCKED' });
   });
 
+  it('clears an obsolete follow-up after a new contact and rejects invalid scheduling dates', async () => {
+    const repository = repositoryWithReferences([opportunity({ nextFollowUpAt: new Date('2020-01-01T00:00:00.000Z') })]);
+    const update = new UpdateOpportunityUseCase(repository, repository);
+
+    await expect(update.execute('opportunity-id', { lastContactAt: new Date() })).resolves.toMatchObject({ nextFollowUpAt: null });
+    await expect(update.execute('opportunity-id', { nextFollowUpAt: new Date('2020-01-01T00:00:00.000Z') }))
+      .rejects.toMatchObject({ code: 'INVALID_FOLLOW_UP_DATE' });
+  });
+
   it('deletes only opportunities still in First Contact', async () => {
     const firstContactRepository = repositoryWithReferences([opportunity()]);
     await new DeleteOpportunityUseCase(firstContactRepository).execute('opportunity-id');

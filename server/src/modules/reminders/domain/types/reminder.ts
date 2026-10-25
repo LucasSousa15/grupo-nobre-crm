@@ -6,8 +6,19 @@ export enum ReminderType {
   CUSTOMER_EVENT_APPROACHING = 'CUSTOMER_EVENT_APPROACHING',
 }
 
+export enum ReminderStatus {
+  OPEN = 'OPEN',
+  DISMISSED = 'DISMISSED',
+}
+
 export interface CreateReminderInput {
   opportunityId: string;
   type: ReminderType;
   dueAt: Date;
+}
+
+export interface ReminderDetails extends CreateReminderInput {
+  id: string;
+  status: ReminderStatus;
+  createdAt: Date;
 }

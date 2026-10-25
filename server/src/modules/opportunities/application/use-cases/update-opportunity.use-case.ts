@@ -5,12 +5,15 @@ import { OpportunityReferencesRepository } from '../../domain/repositories/oppor
 import { OpportunityItemInput, UpdateOpportunityProps } from '../../domain/types/opportunity';
 import { OpportunityReferenceInvalidError } from '../errors/opportunity-reference-invalid.error';
 import { Opportunity } from '../../domain/entities/opportunity.entity';
+import { ReminderRepository } from 'src/modules/reminders/domain/repositories/reminder.repository';
+import { OpportunityPricingService } from '../../domain/services/opportunity-pricing.service';
 
 @Injectable()
 export class UpdateOpportunityUseCase {
   constructor(
     private readonly opportunities: OpportunityManagementRepository,
     private readonly references: OpportunityReferencesRepository,
+    private readonly reminders?: ReminderRepository,
   ) {}
 
   async execute(id: string, input: UpdateOpportunityProps) {
@@ -41,6 +44,15 @@ export class UpdateOpportunityUseCase {
       : await this.calculateEstimatedValue(items);
     const proposalValidUntil = input.proposalValidUntil === undefined ? current.proposalValidUntil : input.proposalValidUntil;
     const customerEventAt = input.customerEventAt === undefined ? current.customerEventAt : input.customerEventAt;
+    const lastContactAt = input.lastContactAt === undefined ? current.lastContactAt : input.lastContactAt;
+    let nextFollowUpAt = input.nextFollowUpAt === undefined ? current.nextFollowUpAt : input.nextFollowUpAt;
+    if (input.lastContactAt !== undefined && input.nextFollowUpAt === undefined && lastContactAt && nextFollowUpAt && nextFollowUpAt <= lastContactAt) {
+      nextFollowUpAt = null;
+    }
+    Opportunity.assertFollowUpDates(
+      input.lastContactAt === undefined ? undefined : lastContactAt,
+      input.nextFollowUpAt === undefined ? undefined : nextFollowUpAt,
+    );
     Opportunity.assertDatesAreNotInPast(
       input.customerEventAt === undefined ? undefined : customerEventAt,
       input.proposalValidUntil === undefined ? undefined : proposalValidUntil,
@@ -56,7 +68,11 @@ export class UpdateOpportunityUseCase {
       customerEventAt: current.customerEventAt,
     }).assertCurrentStageInvariants(estimatedValue, items.length, proposalValidUntil, customerEventAt);
 
-    return this.opportunities.update(id, { ...input, estimatedValue });
+    const updated = await this.opportunities.update(id, { ...input, nextFollowUpAt, estimatedValue });
+    if (input.lastContactAt !== undefined || input.nextFollowUpAt !== undefined) {
+      await this.reminders?.dismissOpenFollowUps(id);
+    }
+    return updated;
   }
 
   private async validateItems(items: OpportunityItemInput[]): Promise<void> {
@@ -71,8 +87,7 @@ export class UpdateOpportunityUseCase {
   private async calculateEstimatedValue(items: OpportunityItemInput[]): Promise<number | null> {
     if (items.length === 0) return null;
     const prices = await this.references.findActiveProductUnitPrices(items.map((item) => item.productId));
-    const total = items.reduce((sum, item) => sum + (prices.get(item.productId) ?? 0) * item.quantity, 0);
-    return Math.round(total * 100) / 100;
+    return OpportunityPricingService.calculate(items, prices);
   }
 
 }

@@ -11,6 +11,8 @@ import { FindOpportunitiesDto } from '../dto/find-opportunities.dto';
 import { UpdateOpportunityDto } from '../dto/update-opportunity.dto';
 import { OpportunityViewModel } from '../view-models/opportunity.view-model';
 import { OpportunityStageHistoryViewModel } from '../view-models/opportunity-stage-history.view-model';
+import { ReminderRepository } from 'src/modules/reminders/domain/repositories/reminder.repository';
+import { ResourceNotFoundError } from 'src/core/shared/errors/resource-not-found.error';
 
 @ApiTags('Opportunities')
 @Controller('opportunities')
@@ -21,6 +23,7 @@ export class OpportunitiesController {
     private readonly updateOpportunity: UpdateOpportunityUseCase,
     private readonly deleteOpportunity: DeleteOpportunityUseCase,
     private readonly changeOpportunityStage: ChangeOpportunityStageUseCase,
+    private readonly reminders: ReminderRepository,
   ) {}
 
   @Get()
@@ -49,6 +52,19 @@ export class OpportunitiesController {
   @ApiParam({ name: 'id', description: 'UUID da oportunidade' })
   async findById(@Param('id') id: string) {
     return { opportunity: OpportunityViewModel.toHTTP(await this.findOpportunities.byId(id)) };
+  }
+
+  @Get(':id/reminders')
+  @ApiOperation({ summary: 'Lista lembretes da oportunidade' })
+  async findReminders(@Param('id') id: string) {
+    return { reminders: await this.reminders.findByOpportunityId(id) };
+  }
+
+  @Patch(':id/reminders/:reminderId/dismiss')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Conclui um lembrete aberto' })
+  async dismissReminder(@Param('id') id: string, @Param('reminderId') reminderId: string): Promise<void> {
+    if (!(await this.reminders.dismiss(reminderId, id))) throw new ResourceNotFoundError('Lembrete');
   }
 
   @Post()

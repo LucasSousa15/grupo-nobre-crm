@@ -11,8 +11,10 @@ import { OpportunityRepository } from "./domain/repositories/opportunity.reposit
 import { OpportunityReferencesRepository } from "./domain/repositories/opportunity-references.repository";
 import { PrismaOpportunityRepository } from "./infra/database/prisma/repositories/prisma-opportunity.repository";
 import { OpportunitiesController } from "./infra/http/controllers/opportunities.controller";
+import { RemindersModule } from '../reminders/reminders.module';
 
 @Module({
+  imports: [RemindersModule],
   controllers: [OpportunitiesController],
   providers: [
     PrismaOpportunityRepository,

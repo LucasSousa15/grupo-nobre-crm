@@ -17,7 +17,7 @@ const opportunityDetailsInclude = {
   company: { select: { companyName: true, contactName: true, contactEmail: true, contactPhone: true } },
   seller: { select: { name: true } },
   items: { include: { product: { select: { name: true } } } },
-  reminders: { select: { type: true, createdAt: true } },
+  reminders: { select: { type: true, status: true, createdAt: true } },
 } satisfies Prisma.OpportunityInclude;
 
 type OpportunityWithDetails = Prisma.OpportunityGetPayload<{ include: typeof opportunityDetailsInclude }>;
@@ -124,7 +124,7 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
             ELSE 'NORMAL'
           END AS attention_status
         FROM opportunities o
-        LEFT JOIN reminders r ON r.opportunity_id = o.id
+        LEFT JOIN reminders r ON r.opportunity_id = o.id AND r.status = 'OPEN'::"ReminderStatus"
         WHERE ${baseWhere}
         GROUP BY o.id
       ), stats AS (
@@ -222,12 +222,12 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
     return ids.filter((id) => !validIds.has(id));
   }
 
-  async findActiveProductUnitPrices(ids: string[]): Promise<Map<string, number>> {
+  async findActiveProductUnitPrices(ids: string[]): Promise<Map<string, string>> {
     const products = await this.prisma.product.findMany({
       where: { id: { in: ids }, active: true },
       select: { id: true, unitPrice: true },
     });
-    return new Map(products.map((product) => [product.id, product.unitPrice.toNumber()]));
+    return new Map(products.map((product) => [product.id, product.unitPrice.toFixed(4)]));
   }
 
   async findOpenForAutomation(): Promise<OpportunityForAutomation[]> {
@@ -271,6 +271,7 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
         nextFollowUpAt: opportunity.nextFollowUpAt,
         reminders: opportunity.reminders.map((reminder) => ({
           type: reminder.type as ReminderType,
+          status: reminder.status as import('src/modules/reminders/domain/types/reminder').ReminderStatus,
           createdAt: reminder.createdAt,
         })),
       }),

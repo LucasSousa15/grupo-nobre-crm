@@ -1,4 +1,4 @@
-import { ReminderType } from 'src/modules/reminders/domain/types/reminder';
+import { ReminderStatus, ReminderType } from 'src/modules/reminders/domain/types/reminder';
 import { FOLLOW_UP_DUE_WINDOW_DAYS } from './follow-up-reminder-policy.service';
 import { OpportunityStage } from '../types/opportunity-stage';
 
@@ -12,6 +12,7 @@ export enum OpportunityAttentionStatus {
 export interface OpportunityReminderForAttention {
   type: ReminderType;
   createdAt: Date;
+  status?: ReminderStatus;
 }
 
 export interface OpportunityAttentionInput {
@@ -29,6 +30,7 @@ export class OpportunityAttentionService {
 
     const overdueFollowUpReminders = input.reminders.filter((reminder) => (
       reminder.type === ReminderType.FOLLOW_UP_OVERDUE
+      && reminder.status !== ReminderStatus.DISMISSED
       && (!input.lastContactAt || reminder.createdAt > input.lastContactAt)
     ));
 
