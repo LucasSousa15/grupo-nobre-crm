@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { attentionStatuses, opportunityStages } from "@/hooks/opportunities/types";
 
-const opportunitySchema = z.object({
+export const opportunitySchema = z.object({
   // Identificadores são opacos para a interface: o seed utiliza chaves estáveis
   // textuais em relações internas e a UI não deve assumir UUIDs como contrato.
   id: z.string().min(1),
@@ -43,6 +43,10 @@ export const opportunitiesResponseSchema = z.object({
     OVERDUE: z.number().int().nonnegative(),
     CRITICAL: z.number().int().nonnegative(),
   }).optional().default({ NORMAL: 0, DUE_SOON: 0, OVERDUE: 0, CRITICAL: 0 }),
+});
+
+export const opportunityResponseSchema = z.object({
+  opportunity: opportunitySchema,
 });
 
 export const opportunityHistoryResponseSchema = z.object({

@@ -11,9 +11,14 @@ import { useProducts } from '@/hooks/products/use-products';
 import type { Opportunity } from '@/hooks/opportunities/types';
 import type { Seller } from '@/hooks/sellers/types';
 
+const today = new Date();
+const todayAsCivilDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
 const opportunityFormSchema = z.object({
   companyId: z.string().uuid('Selecione uma empresa válida.'),
-  customerEventAt: z.string().date('Informe a data do evento.'),
+  customerEventAt: z.string()
+    .date('Informe a data do evento.')
+    .refine((value) => value >= todayAsCivilDate, 'A data do evento não pode ser anterior a hoje.'),
   items: z
     .array(
       z.object({
@@ -130,7 +135,7 @@ export function OpportunityEditorDialog({
             {form.formState.errors.companyId && <span className="mt-1 block text-sm text-red-700">{form.formState.errors.companyId.message}</span>}
           </label>
           <label>Evento
-            <input type="date" {...form.register('customerEventAt')} aria-invalid={Boolean(form.formState.errors.customerEventAt)} className="mt-1 w-full rounded-lg border p-2 aria-[invalid=true]:border-red-600" />
+            <input type="date" min={todayAsCivilDate} {...form.register('customerEventAt')} aria-invalid={Boolean(form.formState.errors.customerEventAt)} className="mt-1 w-full rounded-lg border p-2 aria-[invalid=true]:border-red-600" />
             {form.formState.errors.customerEventAt && <span className="mt-1 block text-sm text-red-700">{form.formState.errors.customerEventAt.message}</span>}
           </label>
           <label>Valor total<input disabled value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)} className="mt-1 w-full rounded-lg border bg-nobre-paper-shade p-2" /></label>

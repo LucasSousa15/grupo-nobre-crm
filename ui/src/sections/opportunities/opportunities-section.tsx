@@ -184,7 +184,7 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
         </div>
       )}
 
-      {selectedOpportunity && <OpportunityDetailsDrawer key={`${selectedOpportunity.id}:${requestedStage ?? selectedOpportunity.stage}`} opportunity={selectedOpportunity} requestedStage={requestedStage} onClose={() => { setSelectedOpportunity(null); setRequestedStage(undefined); }} onMove={(stage, lossReason) => moveOpportunity(selectedOpportunity, stage, lossReason)} onEdit={() => setEditorOpportunity(selectedOpportunity)} isMoving={changeStage.isPending} />}
+      {selectedOpportunity && <OpportunityDetailsDrawer key={`${selectedOpportunity.id}:${requestedStage ?? selectedOpportunity.stage}`} opportunity={selectedOpportunity} requestedStage={requestedStage} onClose={() => { setSelectedOpportunity(null); setRequestedStage(undefined); }} onMove={(stage, lossReason) => moveOpportunity(selectedOpportunity, stage, lossReason)} onOpportunityUpdated={setSelectedOpportunity} isMoving={changeStage.isPending} />}
       {editorOpportunity !== undefined && <OpportunityEditorDialog seller={seller} opportunity={editorOpportunity ?? undefined} onClose={() => setEditorOpportunity(undefined)} />}
     </section>
   );
