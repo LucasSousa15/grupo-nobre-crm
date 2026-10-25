@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { OpportunityStage as PrismaOpportunityStage, Prisma } from '@prisma/client';
+import { OpportunityStage as PrismaOpportunityStage, Prisma, ReminderStatus as PrismaReminderStatus, ReminderType as PrismaReminderType } from '@prisma/client';
 import { PrismaService } from 'src/core/providers/database/models/prisma.service';
 import { OpportunityWasChangedError } from 'src/modules/opportunities/application/errors/opportunity-was-changed.error';
 import { OpportunitySnapshot } from 'src/modules/opportunities/domain/entities/opportunity.entity';
@@ -177,25 +177,42 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
   }
 
   async update(id: string, data: UpdateOpportunityProps): Promise<OpportunityDetails> {
-    const opportunity = await this.prisma.$transaction(async (transaction) => transaction.opportunity.update({
-      where: { id },
-      data: {
-        ...(data.companyId !== undefined ? { companyId: data.companyId } : {}),
-        ...(data.sellerId !== undefined ? { sellerId: data.sellerId } : {}),
-        ...(data.estimatedValue !== undefined ? { estimatedValue: data.estimatedValue } : {}),
-        ...(data.lastContactAt !== undefined ? { lastContactAt: data.lastContactAt } : {}),
-        ...(data.nextFollowUpAt !== undefined ? { nextFollowUpAt: data.nextFollowUpAt } : {}),
-        ...(data.proposalValidUntil !== undefined ? { proposalValidUntil: data.proposalValidUntil } : {}),
-        ...(data.customerEventAt !== undefined ? { customerEventAt: data.customerEventAt } : {}),
-        ...(data.items !== undefined ? {
-          items: {
-            deleteMany: {},
-            create: data.items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+    const opportunity = await this.prisma.$transaction(async (transaction) => {
+      await transaction.opportunity.update({
+        where: { id },
+        data: {
+          ...(data.companyId !== undefined ? { companyId: data.companyId } : {}),
+          ...(data.sellerId !== undefined ? { sellerId: data.sellerId } : {}),
+          ...(data.estimatedValue !== undefined ? { estimatedValue: data.estimatedValue } : {}),
+          ...(data.lastContactAt !== undefined ? { lastContactAt: data.lastContactAt } : {}),
+          ...(data.nextFollowUpAt !== undefined ? { nextFollowUpAt: data.nextFollowUpAt } : {}),
+          ...(data.proposalValidUntil !== undefined ? { proposalValidUntil: data.proposalValidUntil } : {}),
+          ...(data.customerEventAt !== undefined ? { customerEventAt: data.customerEventAt } : {}),
+          ...(data.items !== undefined ? {
+            items: {
+              deleteMany: {},
+              create: data.items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+            },
+          } : {}),
+        },
+      });
+
+      if (data.lastContactAt !== undefined || data.nextFollowUpAt !== undefined) {
+        await transaction.reminder.updateMany({
+          where: {
+            opportunityId: id,
+            status: PrismaReminderStatus.OPEN,
+            type: { in: [PrismaReminderType.FOLLOW_UP_DUE, PrismaReminderType.FOLLOW_UP_OVERDUE] },
           },
-        } : {}),
-      },
-      include: opportunityDetailsInclude,
-    }));
+          data: { status: PrismaReminderStatus.DISMISSED },
+        });
+      }
+
+      return transaction.opportunity.findUniqueOrThrow({
+        where: { id },
+        include: opportunityDetailsInclude,
+      });
+    });
     return this.toDetails(opportunity);
   }
 

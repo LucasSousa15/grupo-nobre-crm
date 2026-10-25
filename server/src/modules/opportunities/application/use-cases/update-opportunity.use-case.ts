@@ -5,7 +5,6 @@ import { OpportunityReferencesRepository } from '../../domain/repositories/oppor
 import { OpportunityItemInput, UpdateOpportunityProps } from '../../domain/types/opportunity';
 import { OpportunityReferenceInvalidError } from '../errors/opportunity-reference-invalid.error';
 import { Opportunity } from '../../domain/entities/opportunity.entity';
-import { ReminderRepository } from 'src/modules/reminders/domain/repositories/reminder.repository';
 import { OpportunityPricingService } from '../../domain/services/opportunity-pricing.service';
 import { OpportunityUpdateEmptyError } from '../errors/opportunity-update-empty.error';
 
@@ -14,7 +13,6 @@ export class UpdateOpportunityUseCase {
   constructor(
     private readonly opportunities: OpportunityManagementRepository,
     private readonly references: OpportunityReferencesRepository,
-    private readonly reminders?: ReminderRepository,
   ) {}
 
   async execute(id: string, input: UpdateOpportunityProps) {
@@ -73,11 +71,7 @@ export class UpdateOpportunityUseCase {
       customerEventAt: current.customerEventAt,
     }).assertCurrentStageInvariants(estimatedValue, items.length, proposalValidUntil, customerEventAt);
 
-    const updated = await this.opportunities.update(id, { ...input, nextFollowUpAt, estimatedValue });
-    if (input.lastContactAt !== undefined || input.nextFollowUpAt !== undefined) {
-      await this.reminders?.dismissOpenFollowUps(id);
-    }
-    return updated;
+    return this.opportunities.update(id, { ...input, nextFollowUpAt, estimatedValue });
   }
 
   private async validateItems(items: OpportunityItemInput[]): Promise<void> {
