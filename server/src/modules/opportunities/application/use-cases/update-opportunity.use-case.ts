@@ -7,6 +7,7 @@ import { OpportunityReferenceInvalidError } from '../errors/opportunity-referenc
 import { Opportunity } from '../../domain/entities/opportunity.entity';
 import { ReminderRepository } from 'src/modules/reminders/domain/repositories/reminder.repository';
 import { OpportunityPricingService } from '../../domain/services/opportunity-pricing.service';
+import { OpportunityUpdateEmptyError } from '../errors/opportunity-update-empty.error';
 
 @Injectable()
 export class UpdateOpportunityUseCase {
@@ -17,6 +18,10 @@ export class UpdateOpportunityUseCase {
   ) {}
 
   async execute(id: string, input: UpdateOpportunityProps) {
+    if (Object.values(input).every((value) => value === undefined)) {
+      throw new OpportunityUpdateEmptyError();
+    }
+
     const current = await this.opportunities.findDetailsById(id);
     if (!current) throw new ResourceNotFoundError('Oportunidade');
 

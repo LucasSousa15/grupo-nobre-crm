@@ -102,6 +102,25 @@ describe('Opportunities API (e2e)', () => {
     expect((await prisma.reminder.findUnique({ where: { id: pendingReminder.id } }))?.status).toBe('DISMISSED');
   });
 
+  it('rejects an empty opportunity update', async () => {
+    const { company, seller } = await createReferences();
+    const opportunity = await prisma.opportunity.create({
+      data: {
+        code: 'EMPRESAE2E001',
+        companyId: company.id,
+        sellerId: seller.id,
+        customerEventAt: new Date('2026-11-30T00:00:00.000Z'),
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .patch(`/opportunities/${opportunity.id}`)
+      .send({})
+      .expect(422);
+
+    expect(response.body).toMatchObject({ code: 'OPPORTUNITY_UPDATE_EMPTY' });
+  });
+
   it('moves an opportunity to quote presentation and appends its stage history in the test database', async () => {
     const { company, seller, product } = await createReferences();
     const created = await request(app.getHttpServer())

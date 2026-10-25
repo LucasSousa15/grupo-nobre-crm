@@ -122,6 +122,15 @@ describe('Opportunity CRUD use cases', () => {
     await expect(update.execute('opportunity-id', { proposalValidUntil: new Date('2026-11-28T00:00:00.000Z') })).rejects.toBeInstanceOf(StagePrerequisiteError);
   });
 
+  it('rejects an update without any field to change', async () => {
+    const repository = repositoryWithReferences([opportunity()]);
+    const update = new UpdateOpportunityUseCase(repository, repository);
+
+    await expect(update.execute('opportunity-id', {})).rejects.toMatchObject({
+      code: 'OPPORTUNITY_UPDATE_EMPTY',
+    });
+  });
+
   it('locks commercial details after quote presentation until the opportunity returns to quote review', async () => {
     const repository = repositoryWithReferences([opportunity({
       stage: OpportunityStage.FOLLOW_UP,
