@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { OpportunityCodeAlreadyUsedError } from 'src/modules/opportunities/application/errors/opportunity-code-already-used.error';
 import { OpportunityReferenceInvalidError } from 'src/modules/opportunities/application/errors/opportunity-reference-invalid.error';
 import { OpportunityCannotBeDeletedError } from 'src/modules/opportunities/domain/errors/opportunity-cannot-be-deleted.error';
 import { OpportunityItemsInvalidError } from 'src/modules/opportunities/domain/errors/opportunity-items-invalid.error';
