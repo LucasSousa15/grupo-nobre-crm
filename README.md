@@ -60,6 +60,29 @@ Com a integração WSL 2 ativa no Docker Desktop, os comandos `docker compose` d
 
 ## Como executar localmente
 
+### Iniciar todo o ambiente com um comando
+
+Após configurar os arquivos de ambiente, execute, na raiz do repositório:
+
+```bash
+npm install
+npm run demo
+```
+
+O `npm install` da raiz instala as dependências dos workspaces `server` e `ui`. O comando `demo` sobe o PostgreSQL, espera o healthcheck do container, gera o cliente Prisma, aplica migrations pendentes, carrega o seed oficial e inicia a API e o frontend simultaneamente.
+
+Após a primeira carga, use `npm run dev:all` no dia a dia. Ele sobe banco, aplica migrations pendentes e inicia API e frontend, mas **não** executa o seed novamente.
+
+| Necessidade | Comando na raiz | Resultado |
+| --- | --- | --- |
+| Primeira execução ou base vazia | `npm run demo` | Banco, migrations, seed, API e frontend. |
+| Desenvolvimento recorrente | `npm run dev:all` | Banco, migrations, API e frontend, preservando os dados existentes. |
+| Apenas API e frontend | `npm run dev` | API e frontend; pressupõe que o banco já esteja ativo. |
+| Apenas banco | `npm run db:up` | PostgreSQL local, aguardando o healthcheck. |
+| Encerrar apenas o banco | `npm run db:down` | Para e remove o container, preservando o volume de dados. |
+
+Os logs dos processos iniciados em conjunto são identificados por `[api]` e `[ui]`. Use `Ctrl+C` para encerrar API e frontend; o banco continua em execução até que seja parado com `npm run db:down`.
+
 ### 1. Banco de desenvolvimento e API
 
 Em um terminal, entre no backend, crie o arquivo de ambiente e suba o PostgreSQL:
