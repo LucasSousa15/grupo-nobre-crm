@@ -197,7 +197,7 @@ export function OpportunityEditorDialog({
                     current.filter((_, itemIndex) => itemIndex !== index),
                   )
                 }
-                className="cursor-pointer p-2 text-nobre-pitch transition-colors hover:bg-nobre-crown/20 disabled:cursor-not-allowed disabled:opacity-40"
+                className="cursor-pointer rounded-md p-2 text-nobre-pitch transition-colors hover:bg-nobre-pitch hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Trash2 size={16} />
               </button>
