@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { ApplicationError } from './application.error';
 import { OperationalMetricsService } from 'src/core/observability/operational-metrics.service';
+import { Prisma } from '@prisma/client';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -32,6 +33,21 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       } else {
         message = body;
       }
+    } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+      this.metrics.recordUnexpectedError();
+      if (exception.code === 'P2021' || exception.code === 'P2022') {
+        status = HttpStatus.SERVICE_UNAVAILABLE;
+        code = 'DATABASE_SCHEMA_OUTDATED';
+        message = 'O banco de dados está desatualizado. Aplique as migrations antes de continuar.';
+      } else if (exception.code === 'P1001') {
+        status = HttpStatus.SERVICE_UNAVAILABLE;
+        code = 'DATABASE_UNAVAILABLE';
+        message = 'Não foi possível conectar ao banco de dados. Verifique se o serviço está em execução.';
+      }
+      this.logger.error(
+        { requestId: request.requestId, method: request.method, path: request.path, statusCode: status, prismaCode: exception.code },
+        exception.stack,
+      );
     } else {
       this.metrics.recordUnexpectedError();
       this.logger.error(
