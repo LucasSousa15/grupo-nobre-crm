@@ -35,20 +35,23 @@ const opportunities: SeedOpportunity[] = [
 
 async function main(): Promise<void> {
   for (const data of opportunities) {
+    const suffix = data.code.slice(-4);
+    const companyId = `00000000-0000-4000-8000-00000000${suffix}`;
+    const productId = `00000000-0000-4000-9000-00000000${suffix}`;
     const seller = await prisma.seller.upsert({
       where: { email: `${data.seller.toLowerCase()}@nobrebrindes.local` },
       update: { name: data.seller, active: true },
       create: { name: data.seller, email: `${data.seller.toLowerCase()}@nobrebrindes.local` },
     });
     const company = await prisma.company.upsert({
-      where: { id: `seed-company-${data.code}` },
+      where: { id: companyId },
       update: { code: data.company.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase(), companyName: data.company, contactName: data.contact, contactEmail: data.contactEmail, contactPhone: data.contactPhone },
-      create: { id: `seed-company-${data.code}`, code: data.company.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase(), companyName: data.company, contactName: data.contact, contactEmail: data.contactEmail, contactPhone: data.contactPhone },
+      create: { id: companyId, code: data.company.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase(), companyName: data.company, contactName: data.contact, contactEmail: data.contactEmail, contactPhone: data.contactPhone },
     });
     const product = await prisma.product.upsert({
-      where: { id: `seed-product-${data.code}` },
+      where: { id: productId },
       update: { name: data.product, unitPrice: data.estimatedValue / data.quantity, active: true },
-      create: { id: `seed-product-${data.code}`, name: data.product, unitPrice: data.estimatedValue / data.quantity },
+      create: { id: productId, name: data.product, unitPrice: data.estimatedValue / data.quantity },
     });
 
     await prisma.opportunity.upsert({
@@ -62,6 +65,7 @@ async function main(): Promise<void> {
         proposalValidUntil: data.proposalValidUntil ? new Date(`${data.proposalValidUntil}T12:00:00.000Z`) : null,
         customerEventAt: new Date(`${data.customerEventAt}T12:00:00.000Z`),
         lossReason: data.lossReason ?? null,
+        items: { deleteMany: {}, create: { productId: product.id, quantity: data.quantity } },
       },
       create: {
         code: data.code,
