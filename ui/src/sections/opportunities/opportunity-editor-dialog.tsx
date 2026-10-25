@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -53,6 +53,28 @@ export function OpportunityEditorDialog({
   const products = useProducts();
   const queryClient = useQueryClient();
   const [submitError, setSubmitError] = useState('');
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    dialogRef.current?.querySelector<HTMLElement>('button, select, input:not(:disabled)')?.focus();
+    return () => returnFocusRef.current?.focus();
+  }, []);
+
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'Escape') {
+      onClose();
+      return;
+    }
+    if (event.key !== 'Tab' || !dialogRef.current) return;
+    const focusable = [...dialogRef.current.querySelectorAll<HTMLElement>('button:not(:disabled), select:not(:disabled), input:not(:disabled)')];
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable.at(-1)!;
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  }
 
   const form = useForm<OpportunityForm>({
     defaultValues: {
@@ -118,10 +140,10 @@ export function OpportunityEditorDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-[60] grid place-items-center bg-nobre-pitch/50 p-4">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="opportunity-editor-title" onKeyDown={handleKeyDown} className="fixed inset-0 z-[60] grid place-items-center bg-nobre-pitch/50 p-4">
       <form noValidate onSubmit={form.handleSubmit(submit)} className="w-full max-w-xl rounded-2xl bg-nobre-paper p-5 shadow-2xl">
         <header className="flex justify-between">
-          <h2 className="text-xl font-semibold">{opportunity ? 'Editar oportunidade' : 'Nova oportunidade'}</h2>
+          <h2 id="opportunity-editor-title" className="text-xl font-semibold">{opportunity ? 'Editar oportunidade' : 'Nova oportunidade'}</h2>
           <button type="button" onClick={onClose} aria-label="Fechar" className="cursor-pointer rounded-md p-1 hover:bg-nobre-paper-shade"><X /></button>
         </header>
 

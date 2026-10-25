@@ -4,12 +4,10 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import {
   ArrowRight,
   CalendarDays,
-  CalendarClock,
   CircleDollarSign,
   ContactRound,
   FilePenLine,
   History,
-  Info,
   Mail,
   Phone,
   RefreshCw,
@@ -19,6 +17,7 @@ import { formatCivilDate, formatTimestamp } from '@/lib/date-format';
 import { stageLabels, type Opportunity, type OpportunityStage } from '@/hooks/opportunities/types';
 import { useOpportunityHistory } from '@/hooks/opportunities/use-opportunity-history';
 import { OpportunityProposalEditor } from './opportunity-proposal-editor';
+import { OpportunityFollowUpPanel } from './opportunity-follow-up-panel';
 
 type OpportunityDetailsDrawerProps = {
   opportunity: Opportunity;
@@ -193,22 +192,7 @@ export function OpportunityDetailsDrawer({
             )}
           </section>
 
-          <section className="mt-7 rounded-xl border border-nobre-forest/20 bg-nobre-moss/45 p-4" aria-labelledby="follow-up-title">
-            <div className="flex items-start gap-3">
-              <CalendarClock size={19} aria-hidden className="mt-0.5 shrink-0 text-nobre-forest" />
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 id="follow-up-title" className="text-sm font-semibold text-nobre-forest-deep">Acompanhamento de follow-up</h3>
-                  <span className="rounded-full bg-nobre-paper px-2 py-1 text-xs font-semibold text-nobre-forest-deep">Automação ativa</span>
-                </div>
-                <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
-                  <div><dt className="text-nobre-ink-soft">Último contato</dt><dd className="mt-1 font-medium text-nobre-forest-deep">{opportunity.lastContactAt ? formatTimestamp(opportunity.lastContactAt) : 'Ainda não registrado'}</dd></div>
-                  <div><dt className="text-nobre-ink-soft">Próximo follow-up</dt><dd className="mt-1 font-medium text-nobre-forest-deep">{opportunity.nextFollowUpAt ? formatTimestamp(opportunity.nextFollowUpAt) : 'Nenhum agendamento'}</dd></div>
-                </dl>
-                <p className="mt-4 inline-flex items-start gap-2 text-sm text-nobre-ink-soft"><Info size={16} aria-hidden className="mt-0.5 shrink-0 text-nobre-forest" />Nesta versão, estes campos alimentam lembretes e prioridades automaticamente. Registrar um contato ou reagendar o próximo follow-up pela interface está previsto como próxima evolução.</p>
-              </div>
-            </div>
-          </section>
+          <OpportunityFollowUpPanel opportunity={opportunity} onUpdated={onOpportunityUpdated} />
 
           <section className="mt-7 border-t border-nobre-forest-deep/10 pt-5">
             <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-nobre-forest-deep"><History size={16} aria-hidden />Linha do tempo</h3>
