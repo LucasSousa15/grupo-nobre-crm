@@ -1,15 +1,17 @@
 'use client';
 
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2, X } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { crmApi } from '@/http/api';
 import { useCompanies } from '@/hooks/companies/use-companies';
 import { useProducts } from '@/hooks/products/use-products';
 import type { Opportunity } from '@/hooks/opportunities/types';
 import type { Seller } from '@/hooks/sellers/types';
+import { notifyRequestError } from '@/lib/request-feedback';
 
 const today = new Date();
 const todayAsCivilDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -52,7 +54,6 @@ export function OpportunityEditorDialog({
   const companies = useCompanies();
   const products = useProducts();
   const queryClient = useQueryClient();
-  const [submitError, setSubmitError] = useState('');
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
 
@@ -111,13 +112,13 @@ export function OpportunityEditorDialog({
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      toast.success(opportunity ? 'Oportunidade atualizada com sucesso.' : 'Oportunidade criada com sucesso.');
       onClose();
     },
-    onError: () => setSubmitError('Não foi possível salvar a oportunidade. Tente novamente.'),
+    onError: (error) => notifyRequestError(error, 'Não foi possível salvar a oportunidade. Tente novamente.'),
   });
 
   function submit(values: OpportunityForm) {
-    setSubmitError('');
     form.clearErrors();
     const result = opportunityFormSchema.safeParse(values);
 
@@ -133,7 +134,7 @@ export function OpportunityEditorDialog({
           }
         }
       }
-      setSubmitError('Revise os campos destacados antes de salvar.');
+      toast.error('Revise os campos destacados antes de salvar.');
       return;
     }
     save.mutate(result.data);
@@ -186,7 +187,6 @@ export function OpportunityEditorDialog({
           ))}
         </section>
 
-        {submitError && <p role="alert" className="mt-4 text-sm text-red-700">{submitError}</p>}
         <button disabled={save.isPending} className="mt-6 w-full cursor-pointer rounded-lg bg-nobre-forest-deep p-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">{save.isPending ? 'Salvando...' : 'Salvar oportunidade'}</button>
       </form>
     </div>

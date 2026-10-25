@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OpportunityEditorDialog } from './opportunity-editor-dialog';
+import { ToastProvider } from '@/components/toast-provider';
 
 const api = vi.hoisted(() => ({ post: vi.fn(), patch: vi.fn() }));
 vi.mock('@/http/api', () => ({ crmApi: api }));
@@ -14,7 +15,7 @@ vi.mock('@/hooks/products/use-products', () => ({
 }));
 
 const seller = { id: '00000000-0000-4000-8000-000000000010', name: 'Ana', email: 'ana@nobre.local', phone: null, active: true, createdAt: '2026-10-25T12:00:00.000Z', updatedAt: '2026-10-25T12:00:00.000Z' };
-const renderDialog = () => render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><OpportunityEditorDialog seller={seller} onClose={vi.fn()} /></QueryClientProvider>);
+const renderDialog = () => render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><OpportunityEditorDialog seller={seller} onClose={vi.fn()} /><ToastProvider /></QueryClientProvider>);
 
 describe('OpportunityEditorDialog', () => {
   afterEach(() => { document.body.innerHTML = ''; });

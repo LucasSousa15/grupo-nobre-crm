@@ -49,3 +49,28 @@ select,
 a[href] {
   cursor: pointer;
 }
+
+.Toastify__toast {
+  border: 1px solid color-mix(in srgb, var(--nobre-forest) 22%, transparent);
+  border-radius: 0.75rem;
+  box-shadow: 0 12px 32px rgb(12 45 29 / 18%);
+  color: var(--nobre-forest-deep);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.Toastify__toast--success {
+  background: var(--nobre-moss);
+}
+
+.Toastify__toast--error {
+  background: #fff5f4;
+  border-color: #d9776e;
+}
+
+.Toastify__progress-bar--success {
+  background: var(--nobre-forest);
+}
+
+.Toastify__progress-bar--error {
+  background: var(--nobre-pitch);
+}

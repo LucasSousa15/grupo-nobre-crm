@@ -1,16 +1,16 @@
 'use client';
 
-import { useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
-import { isAxiosError } from 'axios';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Save, Trash2, X } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { useCompanies } from '@/hooks/companies/use-companies';
 import { useProducts } from '@/hooks/products/use-products';
 import type { Opportunity } from '@/hooks/opportunities/types';
 import { crmApi } from '@/http/api';
 import { opportunityResponseSchema } from '@/schemas/opportunity-schema';
+import { notifyRequestError } from '@/lib/request-feedback';
 
 type ProposalForm = {
   companyId: string;
@@ -78,7 +78,6 @@ export function OpportunityProposalEditor({ opportunity, onCancel, onSaved }: {
   const companies = useCompanies();
   const products = useProducts();
   const queryClient = useQueryClient();
-  const [requestError, setRequestError] = useState('');
   const canChangeCompany = opportunity.stage === 'FIRST_CONTACT';
   const canEditProposal = opportunity.stage === 'FIRST_CONTACT' || opportunity.stage === 'QUOTE_PRESENTATION';
   const form = useForm<ProposalForm>({
@@ -112,22 +111,18 @@ export function OpportunityProposalEditor({ opportunity, onCancel, onSaved }: {
     },
     onSuccess: async (updated) => {
       await queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      toast.success('Detalhes da proposta atualizados.');
       onSaved(updated);
     },
-    onError: (error) => {
-      const message = isAxiosError(error) && typeof error.response?.data?.message === 'string'
-        ? error.response.data.message
-        : 'Não foi possível salvar os detalhes da proposta.';
-      setRequestError(message);
-    },
+    onError: (error) => notifyRequestError(error, 'Não foi possível salvar os detalhes da proposta.'),
   });
 
   function submit(values: ProposalForm): void {
-    setRequestError('');
     form.clearErrors();
     const result = proposalFormSchema.safeParse(values);
     if (!result.success) {
       setSchemaErrors(form, result.error);
+      toast.error('Revise os campos destacados antes de salvar.');
       return;
     }
     save.mutate(result.data);
@@ -169,7 +164,6 @@ export function OpportunityProposalEditor({ opportunity, onCancel, onSaved }: {
       {form.formState.errors.items?.message && <span className="mt-1 block text-xs text-red-700">{form.formState.errors.items.message}</span>}
     </div>
 
-    {requestError && <p role="alert" className="text-sm text-red-700">{requestError}</p>}
     <div className="flex justify-end gap-2"><button type="button" onClick={onCancel} className="inline-flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-nobre-forest hover:bg-nobre-moss"><X size={16} aria-hidden />Cancelar</button><button disabled={save.isPending} className="inline-flex cursor-pointer items-center gap-1 rounded-lg bg-nobre-forest-deep px-4 py-2 text-sm font-semibold text-white hover:bg-nobre-forest disabled:cursor-not-allowed disabled:opacity-60"><Save size={16} aria-hidden />{save.isPending ? 'Salvando...' : 'Salvar proposta'}</button></div>
   </form>;
 }

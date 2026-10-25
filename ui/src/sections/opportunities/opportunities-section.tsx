@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { isAxiosError } from "axios";
+import { toast } from "react-toastify";
 import { ArrowLeft, CheckCircle2, ChevronDown, Clock3, Flame, RefreshCw, RotateCcw, Search, TriangleAlert, type LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { useChangeOpportunityStage } from "@/hooks/opportunities/use-change-opportunity-stage";
 import { attentionLabels, attentionStatuses, opportunityStages, stageLabels, type AttentionStatus, type Opportunity, type OpportunityStage } from "@/hooks/opportunities/types";
 import { useOpportunities } from "@/hooks/opportunities/use-opportunities";
+import { notifyRequestError } from "@/lib/request-feedback";
 import type { Seller } from "@/hooks/sellers/types";
 import { OpportunityCard } from "./opportunity-card";
 import { OpportunityDetailsDrawer } from "./opportunity-details-drawer";
@@ -50,7 +51,6 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
   const [draggedOpportunity, setDraggedOpportunity] = useState<Opportunity | null>(null);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [requestedStage, setRequestedStage] = useState<OpportunityStage | undefined>();
-  const [moveError, setMoveError] = useState<string | null>(null);
   const [editorOpportunity, setEditorOpportunity] = useState<Opportunity | null | undefined>(undefined);
   const changeStage = useChangeOpportunityStage();
   const opportunitiesQuery = useOpportunities({
@@ -76,19 +76,16 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
 
   function moveOpportunity(opportunity: Opportunity, stage: OpportunityStage, lossReason?: string) {
     if (stage === opportunity.stage) return;
-    setMoveError(null);
     changeStage.mutate(
       { opportunityId: opportunity.id, stage, lossReason: lossReason?.trim() },
       {
         onSuccess: () => {
+          toast.success("Oportunidade movida no funil.");
           setSelectedOpportunity(null);
           setRequestedStage(undefined);
         },
         onError: (error) => {
-          const message = isAxiosError(error) && typeof error.response?.data?.message === "string"
-            ? error.response.data.message
-            : "Não foi possível mover a oportunidade. Confira os pré-requisitos da etapa e tente novamente.";
-          setMoveError(message);
+          notifyRequestError(error, "Não foi possível mover a oportunidade. Confira os pré-requisitos da etapa e tente novamente.");
         },
       },
     );
@@ -100,7 +97,7 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
     if (!opportunity || opportunity.stage === stage) return;
     const transition = opportunity.transitionOptions.find((option) => option.stage === stage);
     if (!transition || !transition.enabled) {
-      setMoveError(transition?.requirements.join(" ") || "Essa mudança de etapa não é permitida no funil.");
+      toast.error("Essa mudança de etapa não é permitida no funil. Revise os pré-requisitos antes de tentar novamente.");
       return;
     }
     if (stage === "LOST") {
@@ -165,7 +162,6 @@ export function OpportunitiesSection({ seller, onChangeSeller }: { seller: Selle
         </p>
       </div>
 
-      {moveError && <div className="mt-6 rounded-xl border border-nobre-crown/70 bg-nobre-crown/25 p-4 text-sm text-nobre-pitch" role="alert">{moveError}</div>}
       {opportunitiesQuery.isLoading && <p className="mt-8 rounded-xl border border-nobre-forest/20 bg-nobre-paper p-5 text-sm text-nobre-ink-soft" role="status">Carregando oportunidades...</p>}
       {opportunitiesQuery.isError && <div className="mt-8 rounded-xl border border-nobre-crown/70 bg-nobre-crown/25 p-5 text-sm text-nobre-pitch" role="alert">
         <p className="font-semibold">Não foi possível carregar as oportunidades.</p>
