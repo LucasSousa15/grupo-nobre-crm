@@ -26,6 +26,7 @@ export class PrismaCompanyRepository implements CompanyRepository {
     await this.prisma.company.update({
       where: { id: company.id },
       data: {
+        code: company.code,
         companyName: company.companyName,
         contactName: company.contactName,
         contactEmail: company.contactEmail,
@@ -45,6 +46,7 @@ export class PrismaCompanyRepository implements CompanyRepository {
   private toDomain(company: PrismaCompany): CompanyProps {
     return {
       id: company.id,
+      code: company.code,
       companyName: company.companyName,
       contactName: company.contactName,
       contactEmail: company.contactEmail,

@@ -4,6 +4,7 @@ export class CompanyViewModel {
   static toHTTP(company: CompanyProps) {
     return {
       id: company.id,
+      code: company.code,
       companyName: company.companyName,
       contactName: company.contactName,
       contactEmail: company.contactEmail,

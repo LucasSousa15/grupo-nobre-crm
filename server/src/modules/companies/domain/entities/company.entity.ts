@@ -7,6 +7,7 @@ export class Company {
     const now = new Date();
     return new Company({
       id: crypto.randomUUID(),
+      code: input.companyName.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toUpperCase(),
       companyName: input.companyName.trim(),
       contactName: input.contactName.trim(),
       contactEmail: input.contactEmail?.trim().toLowerCase() || null,

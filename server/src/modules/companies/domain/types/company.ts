@@ -1,5 +1,6 @@
 export interface CompanyProps {
   id: string;
+  code: string;
   companyName: string;
   contactName: string;
   contactEmail: string | null;

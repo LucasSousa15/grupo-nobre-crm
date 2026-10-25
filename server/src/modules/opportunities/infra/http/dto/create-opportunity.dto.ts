@@ -4,12 +4,6 @@ import { IsArray, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, IsUU
 import { OpportunityItemDto } from './opportunity-item.dto';
 
 export class CreateOpportunityDto {
-  @ApiProperty({ example: 'OPP-2008' })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(40)
-  code!: string;
-
   @ApiProperty({ format: 'uuid' })
   @IsUUID()
   companyId!: string;

@@ -50,7 +50,7 @@ export interface OpportunityStageHistory {
 }
 
 export interface CreateOpportunityProps {
-  code: string;
+  code?: string;
   companyId: string;
   sellerId: string;
   estimatedValue?: number;

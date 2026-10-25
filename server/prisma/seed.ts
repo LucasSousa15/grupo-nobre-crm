@@ -42,8 +42,8 @@ async function main(): Promise<void> {
     });
     const company = await prisma.company.upsert({
       where: { id: `seed-company-${data.code}` },
-      update: { companyName: data.company, contactName: data.contact, contactEmail: data.contactEmail, contactPhone: data.contactPhone },
-      create: { id: `seed-company-${data.code}`, companyName: data.company, contactName: data.contact, contactEmail: data.contactEmail, contactPhone: data.contactPhone },
+      update: { code: data.company.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toUpperCase(), companyName: data.company, contactName: data.contact, contactEmail: data.contactEmail, contactPhone: data.contactPhone },
+      create: { id: `seed-company-${data.code}`, code: data.company.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toUpperCase(), companyName: data.company, contactName: data.contact, contactEmail: data.contactEmail, contactPhone: data.contactPhone },
     });
     const product = await prisma.product.upsert({
       where: { id: `seed-product-${data.code}` },

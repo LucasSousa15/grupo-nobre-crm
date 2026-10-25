@@ -161,7 +161,7 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
   async create(data: CreateOpportunityProps): Promise<OpportunityDetails> {
     const opportunity = await this.prisma.opportunity.create({
       data: {
-        code: data.code,
+        code: data.code!,
         companyId: data.companyId,
         sellerId: data.sellerId,
         estimatedValue: data.estimatedValue,
@@ -205,6 +205,10 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
 
   async companyExists(id: string): Promise<boolean> {
     return (await this.prisma.company.count({ where: { id } })) === 1;
+  }
+
+  async companyCode(id: string): Promise<string | null> {
+    return (await this.prisma.company.findUnique({ where: { id }, select: { code: true } }))?.code ?? null;
   }
 
   async sellerIsActive(id: string): Promise<boolean> {

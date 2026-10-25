@@ -30,6 +30,7 @@ enum ReminderStatus {
 
 model Company {
   id           String        @id @default(uuid())
+  code         String        @unique
   companyName  String        @map("company_name")
   contactName  String        @map("contact_name")
   contactEmail String?       @map("contact_email")

@@ -14,14 +14,23 @@ export class CreateOpportunityUseCase {
   ) {}
 
   async execute(input: CreateOpportunityProps) {
-    const code = input.code.trim().toUpperCase();
     Opportunity.assertEventDateProvided(input.customerEventAt);
     Opportunity.assertProposalDeadline(input.proposalValidUntil, input.customerEventAt);
-    if (await this.opportunities.findByCode(code)) throw new OpportunityCodeAlreadyUsedError();
     const items = input.items ?? [];
     await this.validateReferences(input.companyId, input.sellerId, items);
+    const code = await this.generateCode(input.companyId);
     const estimatedValue = await this.calculateEstimatedValue(items);
     return this.opportunities.create({ ...input, code, estimatedValue });
+  }
+
+  private async generateCode(companyId: string): Promise<string> {
+    const companyCode = await this.references.companyCode(companyId);
+    if (!companyCode) throw new OpportunityReferenceInvalidError('A empresa informada não existe.');
+    for (let sequence = 1; sequence < 10000; sequence += 1) {
+      const code = `${companyCode}-${String(sequence).padStart(3, '0')}`;
+      if (!(await this.opportunities.findByCode(code))) return code;
+    }
+    throw new OpportunityCodeAlreadyUsedError();
   }
 
   private async validateReferences(companyId: string, sellerId: string, items: OpportunityItemInput[]): Promise<void> {

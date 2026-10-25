@@ -100,6 +100,7 @@ export class InMemoryOpportunityManagementRepository implements OpportunityManag
   }
 
   async companyExists(id: string): Promise<boolean> { return this.companies.has(id); }
+  async companyCode(id: string): Promise<string | null> { return this.companies.has(id) ? 'TECH-ALPHA' : null; }
   async sellerIsActive(id: string): Promise<boolean> { return this.activeSellers.has(id); }
   async findInactiveOrMissingProductIds(ids: string[]): Promise<string[]> { return ids.filter((id) => !this.activeProducts.has(id)); }
   async findActiveProductUnitPrices(ids: string[]): Promise<Map<string, number>> { return new Map(ids.filter((id) => this.activeProducts.has(id)).map((id) => [id, 1])); }
