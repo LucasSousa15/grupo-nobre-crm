@@ -11,6 +11,7 @@ import type { Opportunity } from '@/hooks/opportunities/types';
 import { opportunityResponseSchema } from '@/schemas/opportunity-schema';
 import { useOpportunityReminders } from '@/hooks/opportunities/use-opportunity-reminders';
 import { notifyRequestError } from '@/lib/request-feedback';
+import { contactUpdateSchema, type ContactUpdate } from '@/schemas/contact-update-schema';
 
 const reminderLabels = {
   FOLLOW_UP_DUE: 'Follow-up próximo',
@@ -42,10 +43,15 @@ export function OpportunityFollowUpPanel({ opportunity, onUpdated }: { opportuni
     if (updated) onUpdated(updated);
   }
 
+  async function updateContact(payload: ContactUpdate) {
+    const data = contactUpdateSchema.parse(payload);
+    return opportunityResponseSchema.parse((await crmApi.patch(`/opportunities/${opportunity.id}`, data)).data).opportunity;
+  }
+
   const registerContact = useMutation({
-    mutationFn: async () => opportunityResponseSchema.parse((await crmApi.patch(`/opportunities/${opportunity.id}`, {
+    mutationFn: async () => updateContact({
       lastContactAt: new Date().toISOString(),
-    })).data).opportunity,
+    }),
     onSuccess: async (updated) => {
       await refresh(updated);
       toast.success('Contato registrado com sucesso.');
@@ -53,9 +59,9 @@ export function OpportunityFollowUpPanel({ opportunity, onUpdated }: { opportuni
     onError: (error) => notifyRequestError(error, 'Não foi possível registrar o contato agora.'),
   });
   const schedule = useMutation({
-    mutationFn: async (values: ScheduleForm) => opportunityResponseSchema.parse((await crmApi.patch(`/opportunities/${opportunity.id}`, {
+    mutationFn: async (values: ScheduleForm) => updateContact({
       nextFollowUpAt: new Date(values.nextFollowUpAt).toISOString(),
-    })).data).opportunity,
+    }),
     onSuccess: async (updated) => {
       form.reset();
       await refresh(updated);
