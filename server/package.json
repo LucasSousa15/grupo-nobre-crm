@@ -15,6 +15,7 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:test:up": "docker compose -f docker-compose.e2e.yml up -d database-test",
     "db:test:migrate": "prisma migrate deploy --config prisma.e2e.config.ts",
