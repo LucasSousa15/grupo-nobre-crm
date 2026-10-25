@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
-const crmApiUrl = (process.env.CRM_API_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+const crmApiUrl = (process.env.CRM_API_URL ?? "http://localhost:8000").replace(/\/+$/, "");
 
 async function proxy(request: NextRequest, context: RouteContext) {
   const { path } = await context.params;
