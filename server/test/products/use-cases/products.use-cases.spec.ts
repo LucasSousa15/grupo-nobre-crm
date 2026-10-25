@@ -13,6 +13,7 @@ const product = (overrides: Partial<ProductProps> = {}): ProductProps => ({
   name: 'Caneca personalizada',
   description: 'Caneca de cerâmica.',
   active: true,
+  unitPrice: 15,
   createdAt: new Date('2026-10-15T12:00:00.000Z'),
   updatedAt: new Date('2026-10-15T12:00:00.000Z'),
   ...overrides,
@@ -21,8 +22,8 @@ const product = (overrides: Partial<ProductProps> = {}): ProductProps => ({
 describe('Product use cases', () => {
   it('creates an active product with an optional description', async () => {
     const repository = new InMemoryProductRepository();
-    const created = await new CreateProductUseCase(repository).execute({ name: ' Caneca personalizada ', description: ' Cerâmica ' });
-    expect(created).toMatchObject({ name: 'Caneca personalizada', description: 'Cerâmica', active: true });
+    const created = await new CreateProductUseCase(repository).execute({ name: ' Caneca personalizada ', description: ' Cerâmica ', unitPrice: 15 });
+    expect(created).toMatchObject({ name: 'Caneca personalizada', description: 'Cerâmica', unitPrice: 15, active: true });
   });
 
   it('lists products alphabetically', async () => {

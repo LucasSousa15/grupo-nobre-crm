@@ -6,6 +6,7 @@ export class ProductViewModel {
       id: product.id,
       name: product.name,
       description: product.description,
+      unitPrice: product.unitPrice,
       active: product.active,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,

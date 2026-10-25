@@ -36,7 +36,7 @@ describe('Opportunities API (e2e)', () => {
     const [company, seller, product] = await Promise.all([
       prisma.company.create({ data: { companyName: 'Empresa E2E', contactName: 'Mariana E2E', contactEmail: 'mariana.e2e@nobrebrindes.local', contactPhone: '11999990000' } }),
       prisma.seller.create({ data: { name: 'Ana E2E', email: 'ana.e2e@nobrebrindes.local' } }),
-      prisma.product.create({ data: { name: 'Caneca E2E' } }),
+      prisma.product.create({ data: { name: 'Caneca E2E', unitPrice: 15 } }),
     ]);
     return { company, seller, product };
   }

@@ -47,8 +47,8 @@ async function main(): Promise<void> {
     });
     const product = await prisma.product.upsert({
       where: { id: `seed-product-${data.code}` },
-      update: { name: data.product, active: true },
-      create: { id: `seed-product-${data.code}`, name: data.product },
+      update: { name: data.product, unitPrice: data.estimatedValue / data.quantity, active: true },
+      create: { id: `seed-product-${data.code}`, name: data.product, unitPrice: data.estimatedValue / data.quantity },
     });
 
     await prisma.opportunity.upsert({

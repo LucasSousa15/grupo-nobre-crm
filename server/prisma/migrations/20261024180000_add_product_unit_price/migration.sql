@@ -1,0 +1,1 @@
+ALTER TABLE "products" ADD COLUMN "unit_price" DECIMAL(12, 4) NOT NULL DEFAULT 0;

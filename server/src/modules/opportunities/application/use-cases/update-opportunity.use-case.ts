@@ -26,7 +26,9 @@ export class UpdateOpportunityUseCase {
 
     const items = input.items ?? current.items.map(({ productId, quantity }) => ({ productId, quantity }));
     if (input.items !== undefined) await this.validateItems(items);
-    const estimatedValue = input.estimatedValue === undefined ? current.estimatedValue : input.estimatedValue;
+    const estimatedValue = input.items === undefined
+      ? current.estimatedValue
+      : await this.calculateEstimatedValue(items);
     const proposalValidUntil = input.proposalValidUntil === undefined ? current.proposalValidUntil : input.proposalValidUntil;
     const customerEventAt = input.customerEventAt === undefined ? current.customerEventAt : input.customerEventAt;
     Opportunity.assertProposalDeadline(proposalValidUntil, customerEventAt);
@@ -40,7 +42,7 @@ export class UpdateOpportunityUseCase {
       customerEventAt: current.customerEventAt,
     }).assertCurrentStageInvariants(estimatedValue, items.length, proposalValidUntil, customerEventAt);
 
-    return this.opportunities.update(id, input);
+    return this.opportunities.update(id, { ...input, estimatedValue });
   }
 
   private async validateItems(items: OpportunityItemInput[]): Promise<void> {
@@ -50,6 +52,13 @@ export class UpdateOpportunityUseCase {
     if (invalidProductIds.length > 0) {
       throw new OpportunityReferenceInvalidError('Um ou mais produtos informados não existem ou estão inativos.');
     }
+  }
+
+  private async calculateEstimatedValue(items: OpportunityItemInput[]): Promise<number | null> {
+    if (items.length === 0) return null;
+    const prices = await this.references.findActiveProductUnitPrices(items.map((item) => item.productId));
+    const total = items.reduce((sum, item) => sum + (prices.get(item.productId) ?? 0) * item.quantity, 0);
+    return Math.round(total * 100) / 100;
   }
 
 }

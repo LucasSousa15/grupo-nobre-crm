@@ -9,6 +9,7 @@ export class Product {
       id: crypto.randomUUID(),
       name: input.name.trim(),
       description: input.description?.trim() || null,
+      unitPrice: input.unitPrice,
       active: true,
       createdAt: now,
       updatedAt: now,
@@ -26,6 +27,7 @@ export class Product {
   update(input: UpdateProductProps): void {
     if (input.name !== undefined) this.props.name = input.name.trim();
     if (input.description !== undefined) this.props.description = input.description?.trim() || null;
+    if (input.unitPrice !== undefined) this.props.unitPrice = input.unitPrice;
     if (input.active !== undefined) this.props.active = input.active;
     this.props.updatedAt = new Date();
   }

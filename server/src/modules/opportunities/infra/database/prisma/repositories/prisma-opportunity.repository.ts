@@ -218,6 +218,14 @@ export class PrismaOpportunityRepository implements OpportunityRepository, Oppor
     return ids.filter((id) => !validIds.has(id));
   }
 
+  async findActiveProductUnitPrices(ids: string[]): Promise<Map<string, number>> {
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: ids }, active: true },
+      select: { id: true, unitPrice: true },
+    });
+    return new Map(products.map((product) => [product.id, product.unitPrice.toNumber()]));
+  }
+
   async findOpenForAutomation(): Promise<OpportunityForAutomation[]> {
     const opportunities = await this.prisma.opportunity.findMany({
       where: { stage: { notIn: [PrismaOpportunityStage.CLOSED, PrismaOpportunityStage.LOST] } },

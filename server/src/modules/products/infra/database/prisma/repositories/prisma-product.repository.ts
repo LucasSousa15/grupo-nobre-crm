@@ -25,7 +25,7 @@ export class PrismaProductRepository implements ProductRepository {
   async save(product: ProductProps): Promise<void> {
     await this.prisma.product.update({
       where: { id: product.id },
-      data: { name: product.name, description: product.description, active: product.active },
+      data: { name: product.name, description: product.description, unitPrice: product.unitPrice, active: product.active },
     });
   }
 
@@ -42,6 +42,7 @@ export class PrismaProductRepository implements ProductRepository {
       id: product.id,
       name: product.name,
       description: product.description,
+      unitPrice: product.unitPrice.toNumber(),
       active: product.active,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,

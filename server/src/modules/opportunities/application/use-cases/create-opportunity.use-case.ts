@@ -18,8 +18,10 @@ export class CreateOpportunityUseCase {
     Opportunity.assertEventDateProvided(input.customerEventAt);
     Opportunity.assertProposalDeadline(input.proposalValidUntil, input.customerEventAt);
     if (await this.opportunities.findByCode(code)) throw new OpportunityCodeAlreadyUsedError();
-    await this.validateReferences(input.companyId, input.sellerId, input.items ?? []);
-    return this.opportunities.create({ ...input, code });
+    const items = input.items ?? [];
+    await this.validateReferences(input.companyId, input.sellerId, items);
+    const estimatedValue = await this.calculateEstimatedValue(items);
+    return this.opportunities.create({ ...input, code, estimatedValue });
   }
 
   private async validateReferences(companyId: string, sellerId: string, items: OpportunityItemInput[]): Promise<void> {
@@ -35,5 +37,12 @@ export class CreateOpportunityUseCase {
     if (invalidProductIds.length > 0) {
       throw new OpportunityReferenceInvalidError('Um ou mais produtos informados não existem ou estão inativos.');
     }
+  }
+
+  private async calculateEstimatedValue(items: OpportunityItemInput[]): Promise<number | undefined> {
+    if (items.length === 0) return undefined;
+    const prices = await this.references.findActiveProductUnitPrices(items.map((item) => item.productId));
+    const total = items.reduce((sum, item) => sum + (prices.get(item.productId) ?? 0) * item.quantity, 0);
+    return Math.round(total * 100) / 100;
   }
 }
